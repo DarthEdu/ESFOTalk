@@ -1,6 +1,8 @@
 import 'package:esfotalk_app/common/rounded_small_button.dart';
 import 'package:esfotalk_app/constants/ui_constants.dart';
 import 'package:esfotalk_app/features/auth/widgets/auth_field.dart';
+import 'package:esfotalk_app/theme/pallete.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class LoginView extends StatefulWidget {
@@ -48,6 +50,19 @@ class _LoginViewState extends State<LoginView> {
                 const SizedBox(height: 40),
                 RichText(text: TextSpan(
                   text: "¿No tienes una cuenta?",
+                  children: [
+                    TextSpan(
+                      text: ' Regístrate',
+                      style: TextStyle(
+                        color: Pallete.vinoColor,
+                        fontSize: 16,
+                      ),
+                      recognizer: TapGestureRecognizer()..onTap = () {
+                        // Navegar a la vista de registro
+                        
+                      },
+                    )
+                  ],
                 ))
               ],
             ),
