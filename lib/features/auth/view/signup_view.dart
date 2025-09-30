@@ -1,20 +1,21 @@
 import 'package:esfotalk_app/common/rounded_small_button.dart';
 import 'package:esfotalk_app/constants/ui_constants.dart';
-import 'package:esfotalk_app/features/auth/view/signup_view.dart';
+import 'package:esfotalk_app/features/auth/view/login_view.dart';
 import 'package:esfotalk_app/features/auth/widgets/auth_field.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-class LoginView extends StatefulWidget {
-  static route() => MaterialPageRoute(builder: (context) => const LoginView());
-  const LoginView({super.key});
+class SignUpView extends StatefulWidget {
+  
+  static route() => MaterialPageRoute(builder: (context) => const SignUpView());
+  const SignUpView({super.key});
 
   @override
-  State<LoginView> createState() => _LoginViewState();
+  State<SignUpView> createState() => _SignUpViewState();
 }
 
-class _LoginViewState extends State<LoginView> {
+class _SignUpViewState extends State<SignUpView> {
   final appbar = UiConstants.appBar();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -51,18 +52,15 @@ class _LoginViewState extends State<LoginView> {
                 const SizedBox(height: 40),
                 Align(
                   alignment: Alignment.topRight,
-                  child: RoundedSmallButton(
-                    onTap: () {},
-                    label: 'Iniciar Sesión',
-                  ),
+                  child: RoundedSmallButton(onTap: () {}, label: 'Registrarse'),
                 ),
                 const SizedBox(height: 40),
                 RichText(
                   text: TextSpan(
-                    text: "¿No tienes una cuenta?",
+                    text: "¿Ya tienes una cuenta?",
                     children: [
                       TextSpan(
-                        text: ' Regístrate',
+                        text: ' Inicia Sesión',
                         style: TextStyle(
                           color: Pallete.vinoColor,
                           fontSize: 16,
@@ -72,7 +70,7 @@ class _LoginViewState extends State<LoginView> {
                             // Navegar a la vista de registro
                             Navigator.push(
                               context,
-                              SignUpView.route(),
+                              LoginView.route()
                             );
                           },
                       ),
