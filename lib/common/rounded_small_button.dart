@@ -8,21 +8,24 @@ class RoundedSmallButton extends StatelessWidget {
   final Color textColor;
 
   const RoundedSmallButton({
-    Key? key, 
+    super.key, 
     required this.onTap, 
     required this.label,
      this.backgroundColor = Pallete.whiteColor,
      this.textColor = Pallete.backgroundColor,
-    }) : super(key: key);
+    });
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      label: Text(label, 
-      style: TextStyle(color: textColor, fontSize: 16,),
+    onTap;
+    return InkWell(
+      child: Chip(
+        label: Text(label, 
+        style: TextStyle(color: textColor, fontSize: 16,),
+        ),
+        backgroundColor: backgroundColor,
+        labelPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       ),
-      backgroundColor: backgroundColor,
-      labelPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
     );
   }
 }

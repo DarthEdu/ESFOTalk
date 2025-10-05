@@ -1,21 +1,23 @@
 import 'package:esfotalk_app/common/rounded_small_button.dart';
 import 'package:esfotalk_app/constants/ui_constants.dart';
+import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/features/auth/view/login_view.dart';
 import 'package:esfotalk_app/features/auth/widgets/auth_field.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SignUpView extends StatefulWidget {
+class SignUpView extends ConsumerStatefulWidget {
   
   static route() => MaterialPageRoute(builder: (context) => const SignUpView());
   const SignUpView({super.key});
 
   @override
-  State<SignUpView> createState() => _SignUpViewState();
+  ConsumerState<SignUpView> createState() => _SignUpViewState();
 }
 
-class _SignUpViewState extends State<SignUpView> {
+class _SignUpViewState extends ConsumerState<SignUpView> {
   final appbar = UiConstants.appBar();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -25,6 +27,14 @@ class _SignUpViewState extends State<SignUpView> {
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  void onSignUp() {
+    ref.read(authControllerProvider.notifier).signUp(
+          email: emailController.text,
+          password: passwordController.text,
+          context: context,
+        );
   }
 
   @override
@@ -52,7 +62,9 @@ class _SignUpViewState extends State<SignUpView> {
                 const SizedBox(height: 40),
                 Align(
                   alignment: Alignment.topRight,
-                  child: RoundedSmallButton(onTap: () {}, label: 'Registrarse'),
+                  child: RoundedSmallButton(
+                    onTap: onSignUp,
+                    label: 'Registrarse'),
                 ),
                 const SizedBox(height: 40),
                 RichText(

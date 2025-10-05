@@ -1,18 +1,26 @@
-import 'package:appwrite/appwrite.dart' as model;
+import 'package:appwrite/models.dart';
 import 'package:esfotalk_app/core/core.dart';
 import 'package:appwrite/appwrite.dart';
+import 'package:esfotalk_app/core/providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fpdart/fpdart.dart';
+
+final authAPIProvider = Provider((ref) {
+  final account = ref.watch(appwriteAcccountProvider);
+  return AuthAPI(account: account);
+});
 
 abstract class IAuthApi {
-  FutureEither<model.Account> signUp({
-    required String email,
-    required String password,
-  });
+  FutureEither<User> signUp({required String email, required String password});
 }
 
 class AuthAPI implements IAuthApi {
   final Account _account;
+
+  AuthAPI({required Account account}) : _account = account;
+
   @override
-  FutureEither<model.Account> signUp({
+  FutureEither<User> signUp({
     required String email,
     required String password,
   }) async {
@@ -22,11 +30,13 @@ class AuthAPI implements IAuthApi {
         email: email,
         password: password,
       );
-      return Right(user);
-    } on AppwriteException catch (e, st) {
-      return Left(Failure(e.message ?? 'Some unexpected error occurred', st));
-    } catch (e, st) {
-      return Left(Failure(e.toString(), st));
+      return right(user);
+    } on AppwriteException catch (e, stackTrace) {
+      return left(
+        Failure(e.message ?? 'Some unexpected error occurred', stackTrace),
+      );
+    } catch (e, stackTrace) {
+      return left(Failure(e.toString(), stackTrace));
     }
   }
 }
