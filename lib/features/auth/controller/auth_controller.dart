@@ -6,7 +6,7 @@ import 'package:esfotalk_app/apis/user_api.dart';
 import 'package:esfotalk_app/core/core.dart';
 import 'package:esfotalk_app/core/utils.dart';
 import 'package:esfotalk_app/features/auth/view/login_view.dart';
-import 'package:esfotalk_app/home/view/home_view.dart';
+import 'package:esfotalk_app/features/home/view/home_view.dart';
 import 'package:esfotalk_app/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

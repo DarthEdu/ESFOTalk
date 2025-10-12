@@ -1,7 +1,7 @@
 import 'package:esfotalk_app/common/common.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/features/auth/view/signup_view.dart';
-import 'package:esfotalk_app/home/view/home_view.dart';
+import 'package:esfotalk_app/features/home/view/home_view.dart';
 import 'package:esfotalk_app/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
