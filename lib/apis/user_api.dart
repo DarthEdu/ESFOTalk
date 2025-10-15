@@ -1,4 +1,5 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/models.dart';
 import 'package:esfotalk_app/constants/constants.dart';
 import 'package:esfotalk_app/core/failure.dart';
 import 'package:esfotalk_app/core/providers.dart';
@@ -14,11 +15,13 @@ final userAPIProvider = Provider((ref) {
 abstract class IUserApi {
   /// Obtiene la cuenta del usuario actual
   FutureEitherVoid saveUserData({required UserModel userModel});
+  Future<Document> getUserData(String uid);
 }
 
 class UserAPI implements IUserApi {
   final Databases _databases;
   UserAPI({required Databases databases}) : _databases = databases;
+
   @override
   FutureEitherVoid saveUserData({required UserModel userModel}) async {
     try{
@@ -26,7 +29,7 @@ class UserAPI implements IUserApi {
       await _databases.createDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.usersTable,
-        documentId: ID.unique(),
+        documentId: userModel.uid,
         data: userModel.toMap(),
       );
       return right(null);
@@ -35,5 +38,10 @@ class UserAPI implements IUserApi {
     } catch (e, st) {
       return left(Failure(e.toString(), st));
     }
+  }
+
+  @override
+  Future<Document> getUserData(String uid) {
+    return _databases.getDocument(databaseId: AppwriteConstants.databaseId, collectionId: AppwriteConstants.usersTable, documentId: uid);
   }
 }

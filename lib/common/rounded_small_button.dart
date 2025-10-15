@@ -19,13 +19,13 @@ class RoundedSmallButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        print('RoundedSmallButton tap: $label');
         onTap();
       },
       child: Chip(
         label: Text(label, style: TextStyle(color: textColor, fontSize: 16)),
         backgroundColor: backgroundColor,
-        labelPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        labelPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+        shape: const StadiumBorder(),
       ),
     );
   }

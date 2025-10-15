@@ -38,6 +38,7 @@ dependencies:
   flutter_riverpod: ^2.4.0
   fpdart: ^1.1.1
   appwrite: ^19.1.0
+  image_picker: ^1.2.0
 
 dev_dependencies:
   flutter_test:
