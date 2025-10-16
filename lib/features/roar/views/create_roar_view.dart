@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:esfotalk_app/common/loading_page.dart';
 import 'package:esfotalk_app/common/rounded_small_button.dart';
 import 'package:esfotalk_app/constants/assets_constant.dart';
+import 'package:esfotalk_app/core/utils.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/material.dart';
@@ -19,14 +22,25 @@ class CreateRoarScreen extends ConsumerStatefulWidget {
 
 class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
   final roarTextController = TextEditingController();
+  List<File> images = [];
+
+
   @override
   void dispose() {
     super.dispose();
     roarTextController.dispose();
   }
+
+  void onPickImages() async{
+    images = await pickImages();
+    setState(() {
+
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final currentUser = ref.watch(currentUserDetailsProvider).value; 
+    final currentUser = ref.watch(currentUserDetailsProvider).value;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -45,71 +59,57 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
         ],
       ),
       body: currentUser == null
-      ? const Loader()
-      : SafeArea(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundImage: NetworkImage(currentUser.profilePic),
-                  radius: 30,
-                ),
-                const SizedBox(width: 15),
-                TextField(
-                  controller: roarTextController,
-                  style: const TextStyle(
-                    fontSize: 22,
+          ? const Loader()
+          : SafeArea(
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: NetworkImage(currentUser.profilePic),
+                        radius: 30,
+                      ),
+                      const SizedBox(width: 15),
+                      TextField(
+                        controller: roarTextController,
+                        style: const TextStyle(fontSize: 22),
+                        decoration: const InputDecoration(
+                          hintText: "¿Qué está pasando?",
+                          hintStyle: TextStyle(
+                            color: Pallete.greyColor,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          border: InputBorder.none,
+                        ),
+                        maxLines: null,
+                      ),
+                    ],
                   ),
-                  decoration: const InputDecoration(
-                    hintText: "¿Qué está pasando?",
-                    hintStyle: TextStyle(
-                      color: Pallete.greyColor,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600
-                    ),
-                    border: InputBorder.none,
-                  ),
-                  maxLines: null,
-                ),
-              ],
-            )
-          ],
-        )
-      ),
+                ],
+              ),
+            ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.only(bottom: 10),
         decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: Pallete.greyColor,
-              width: 0.3,
-            ),
-          ),
+          border: Border(top: BorderSide(color: Pallete.greyColor, width: 0.3)),
         ),
         child: Row(
           children: [
-            SvgPicture.asset(AssetsConstants.galleryIcon),
             Padding(
-              padding: const EdgeInsets.all(8.0).copyWith(
-              left: 15,
-              right: 15,
-            ),
-            child: SvgPicture.asset(AssetsConstants.galleryIcon),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0).copyWith(
-              left: 15,
-              right: 15,
-            ),
-            child: SvgPicture.asset(AssetsConstants.gifIcon),
+              padding: const EdgeInsets.all(8.0).copyWith(left: 15, right: 15),
+              child: GestureDetector(
+                onTap: onPickImages,
+                child: SvgPicture.asset(AssetsConstants.galleryIcon),
+              ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0).copyWith(
-              left: 15,
-              right: 15,
+              padding: const EdgeInsets.all(8.0).copyWith(left: 15, right: 15),
+              child: SvgPicture.asset(AssetsConstants.gifIcon),
             ),
-            child: SvgPicture.asset(AssetsConstants.emojiIcon),
+            Padding(
+              padding: const EdgeInsets.all(8.0).copyWith(left: 15, right: 15),
+              child: SvgPicture.asset(AssetsConstants.emojiIcon),
             ),
           ],
         ),

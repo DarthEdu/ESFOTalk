@@ -25,10 +25,13 @@ final currentUserAccountProvider = FutureProvider((ref) {
   return authController.currentUser();
 });
 
-final currentUserDetailsProvider = FutureProvider((ref) {
-  final currentUserId = ref.watch(currentUserAccountProvider).value!.id;
-  final userDetails = ref.watch(userDetailsProvider(currentUserId));
-  return userDetails.value;
+final currentUserDetailsProvider = FutureProvider((ref) async {
+  final currentUserAccount = await ref.watch(currentUserAccountProvider.future);
+  if (currentUserAccount == null) return null;
+  final userDetails = await ref.watch(
+    userDetailsProvider(currentUserAccount.id).future,
+  );
+  return userDetails;
 });
 
 final userDetailsProvider = FutureProvider.family((ref, String uid) {
