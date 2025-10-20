@@ -1,58 +1,61 @@
-# Miscellaneous
+# Misc
+.DS_Store
 *.class
 *.log
 *.pyc
 *.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
 
-# IntelliJ related
+# IDEs
+/.idea/
 *.iml
 *.ipr
 *.iws
-.idea/
+/.vscode/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Flutter/Dart
 .dart_tool/
 .flutter-plugins-dependencies
+.flutter-plugins
+.packages
 .pub-cache/
 .pub/
 /build/
+/.dart_tool/
+/.packages
+
+# Coverage
 /coverage/
 
-# Ignorar APKs y binarios grandes
+# Android
+/android/.gradle/
+/android/app/build/
+/android/**/build/
+/android/local.properties
+/android/*.iml
+
+# Generated files
+/ios/Flutter/Flutter.framework
+/ios/Flutter/Flutter.podspec
+/ios/Flutter/Generated.xcconfig
+
+# APKs
 *.apk
-*.bin
+*.ap_
+*.aab
+
+# Mac
+*.dSYM
+
+# Native
 *.so
+*.dylib
+*.jar
+
+# Logs
+*.log
+
+# Misc
+pubspec.lock
+
+# Avoid accidentally committing build outputs
 android/app/build/
-android/app/build/intermediates/
-android/app/build/outputs/
-
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-/build/
-*.apk
-*.bin
-*.so
