@@ -29,13 +29,11 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   }
 
   void onSignUp() {
-    ref
-        .read(authControllerProvider.notifier)
-        .signUp(
-          email: emailController.text,
-          password: passwordController.text,
-          context: context,
-        );
+    ref.read(authControllerProvider.notifier).signUp(
+      email: emailController.text,
+      password: passwordController.text,
+      context: context,
+    );
   }
 
   @override
@@ -55,14 +53,12 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                         controller: emailController,
                         hintText: 'Correo Electrónico',
                       ),
-
                       const SizedBox(height: 25),
-
                       AuthField(
                         controller: passwordController,
                         hintText: 'Contraseña',
+                        isPassword: true,
                       ),
-
                       const SizedBox(height: 40),
                       Align(
                         alignment: Alignment.topRight,
@@ -84,7 +80,6 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                               ),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
-                                  // Navegar a la vista de registro
                                   Navigator.push(context, LoginView.route());
                                 },
                             ),

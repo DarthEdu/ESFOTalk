@@ -29,13 +29,64 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 
   void onLogin() {
-    ref
-        .read(authControllerProvider.notifier)
-        .login(
+    ref.read(authControllerProvider.notifier).login(
           email: emailController.text,
           password: passwordController.text,
           context: context,
         );
+  }
+
+  void onForgotPassword() {
+    final email = emailController.text.trim();
+    
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor ingresa tu correo electrónico'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validación básica de email
+    if (!email.contains('@') || !email.contains('.')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor ingresa un correo válido'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Mostrar diálogo de confirmación
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Recuperar Contraseña'),
+        content: Text(
+          '¿Enviar enlace de recuperación a:\n$email?',
+          style: const TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(authControllerProvider.notifier).sendPasswordReset(
+                    email: email,
+                    context: context,
+                  );
+            },
+            child: const Text('Enviar'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -59,6 +110,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       AuthField(
                         controller: passwordController,
                         hintText: 'Contraseña',
+                        isPassword: true,
                       ),
                       const SizedBox(height: 40),
                       Align(
@@ -69,9 +121,30 @@ class _LoginViewState extends ConsumerState<LoginView> {
                         ),
                       ),
                       const SizedBox(height: 40),
+                      // Texto de recuperación de contraseña
+                      RichText(
+                        text: TextSpan(
+                          text: "¿Olvidaste tu contraseña? ",
+                          style: const TextStyle(fontSize: 16),
+                          children: [
+                            TextSpan(
+                              text: 'Recupérala aquí',
+                              style: TextStyle(
+                                color: Pallete.vinoColor,
+                                fontSize: 16,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = onForgotPassword,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Texto de registro
                       RichText(
                         text: TextSpan(
                           text: "¿No tienes una cuenta?",
+                          style: const TextStyle(fontSize: 16),
                           children: [
                             TextSpan(
                               text: ' Regístrate',

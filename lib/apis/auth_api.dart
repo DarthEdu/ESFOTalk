@@ -14,19 +14,24 @@ final authAPIProvider = Provider((ref) {
 abstract class IAuthApi {
   /// Registro de usuario
   FutureEither<User> signUp({required String email, required String password});
-
+  
   /// Inicio de sesión, retorna la sesión creada
   FutureEither<Session> login({
     required String email,
     required String password,
   });
-
+  
   FutureEither<User> currentUserAccount();
+  
+  /// Enviar email de verificación
+  FutureEitherVoid sendVerificationEmail();
+  
+  /// Enviar email de recuperación de contraseña
+  FutureEitherVoid sendPasswordReset({required String email});
 }
 
 class AuthAPI implements IAuthApi {
   final Account _account;
-
   AuthAPI({required Account account}) : _account = account;
 
   @override
@@ -77,6 +82,39 @@ class AuthAPI implements IAuthApi {
     } on AppwriteException catch (e, stackTrace) {
       return left(
         Failure(e.message ?? 'Some unexpected error occurred', stackTrace),
+      );
+    } catch (e, stackTrace) {
+      return left(Failure(e.toString(), stackTrace));
+    }
+  }
+
+  @override
+  FutureEitherVoid sendVerificationEmail() async {
+    try {
+      await _account.createVerification(
+        url: 'https://darthedu.github.io/esfotalk_page_static?type=verification',
+      );
+      return right(null);
+    } on AppwriteException catch (e, stackTrace) {
+      return left(
+        Failure(e.message ?? 'Error al enviar email de verificación', stackTrace),
+      );
+    } catch (e, stackTrace) {
+      return left(Failure(e.toString(), stackTrace));
+    }
+  }
+
+  @override
+  FutureEitherVoid sendPasswordReset({required String email}) async {
+    try {
+      await _account.createRecovery(
+        email: email,
+        url: 'https://darthedu.github.io/esfotalk_page_static?type=recovery',
+      );
+      return right(null);
+    } on AppwriteException catch (e, stackTrace) {
+      return left(
+        Failure(e.message ?? 'Error al enviar email de recuperación', stackTrace),
       );
     } catch (e, stackTrace) {
       return left(Failure(e.toString(), stackTrace));
