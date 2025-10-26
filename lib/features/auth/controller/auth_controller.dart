@@ -5,10 +5,12 @@ import 'package:esfotalk_app/apis/auth_api.dart';
 import 'package:esfotalk_app/apis/user_api.dart';
 import 'package:esfotalk_app/core/core.dart';
 import 'package:esfotalk_app/core/utils.dart';
+import 'package:esfotalk_app/features/auth/view/login_view.dart';
 import 'package:esfotalk_app/features/home/view/home_view.dart';
 import 'package:esfotalk_app/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fpdart/fpdart.dart';
 
 final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   ref,
@@ -19,16 +21,17 @@ final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   );
 });
 
-final currentUserAccountProvider = FutureProvider((ref) {
+final currentUserAccountProvider = FutureProvider((ref) async {
   final authController = ref.watch(authControllerProvider.notifier);
-  return authController.currentUser();
+  final either = await authController.currentUser();
+  return either.fold((l) => null, (r) => r);
 });
 
 final currentUserDetailsProvider = FutureProvider((ref) async {
   final currentUserAccount = await ref.watch(currentUserAccountProvider.future);
   if (currentUserAccount == null) return null;
   final userDetails = await ref.watch(
-    userDetailsProvider(currentUserAccount.id).future,
+    userDetailsProvider(currentUserAccount.$id).future,
   );
   return userDetails;
 });
@@ -70,7 +73,7 @@ class AuthController extends StateNotifier<bool> {
       (r) async {
         // Iniciar sesión automáticamente después del registro
         final loginRes = await _authAPI.login(email: email, password: password);
-        
+
         await loginRes.fold(
           (l) {
             if (context.mounted) {
@@ -89,7 +92,7 @@ class AuthController extends StateNotifier<bool> {
               bio: '',
               isDragonred: false,
             );
-            
+
             final res2 = await _userAPI.saveUserData(userModel: userModel);
             res2.fold(
               (l) {
@@ -103,7 +106,7 @@ class AuthController extends StateNotifier<bool> {
                 if (context.mounted) {
                   showSnackBar(
                     context,
-                    'Cuenta creada exitosamente. Revisa tu email para verificar tu cuenta.',
+                    'Cuenta creada exitosamente. Revisa tu correo para verificar tu cuenta.',
                   );
                   Navigator.push(context, HomeView.route());
                 }
@@ -123,21 +126,44 @@ class AuthController extends StateNotifier<bool> {
     state = true;
     final res = await _authAPI.login(email: email, password: password);
     state = false;
-    res.fold(
+    await res.fold(
       (l) {
         if (context.mounted) {
           showSnackBar(context, l.message);
         }
       },
-      (r) {
-        if (context.mounted) {
-          Navigator.push(context, HomeView.route());
-        }
+      (session) async {
+        // Verificar el estado de verificación del correo
+        final currentRes = await _authAPI.currentUserAccount();
+        await currentRes.fold(
+          (l) {
+            if (context.mounted) {
+              showSnackBar(context, l.message);
+            }
+          },
+          (user) async {
+            if (context.mounted) {
+              Navigator.push(context, HomeView.route());
+
+              // Si el correo no está verificado, mostrar un recordatorio pero permitir el acceso
+              if (!user.emailVerification) {
+                showSnackBar(
+                  context,
+                  'Por favor verifica tu correo electrónico para acceder a todas las funciones. Revisa tu bandeja de entrada.',
+                );
+                // Reenviar el email de verificación si es necesario
+                await sendVerificationEmail(context);
+              }
+            }
+          },
+        );
       },
     );
   }
 
-  FutureOr<dynamic> currentUser() {}
+  Future<Either<Failure, User>> currentUser() {
+    return _authAPI.currentUserAccount();
+  }
 
   Future<UserModel> getUserData(String uid) async {
     final document = await _userAPI.getUserData(uid);
@@ -181,6 +207,29 @@ class AuthController extends StateNotifier<bool> {
           showSnackBar(
             context,
             'Email de recuperación enviado. Revisa tu bandeja de entrada.',
+          );
+        }
+      },
+    );
+  }
+
+  Future<void> logout(BuildContext context) async {
+    state = true;
+    final res = await _authAPI.logout();
+    state = false;
+    res.fold(
+      (l) {
+        if (context.mounted) {
+          showSnackBar(context, l.message);
+        }
+      },
+      (r) {
+        if (context.mounted) {
+          showSnackBar(context, 'Sesión cerrada exitosamente');
+          Navigator.pushAndRemoveUntil(
+            context,
+            LoginView.route(),
+            (route) => false,
           );
         }
       },

@@ -4,6 +4,7 @@ import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/features/auth/view/signup_view.dart';
 import 'package:esfotalk_app/features/auth/widgets/auth_field.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
+import 'package:esfotalk_app/core/utils.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,16 +30,32 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 
   void onLogin() {
-    ref.read(authControllerProvider.notifier).login(
-          email: emailController.text,
-          password: passwordController.text,
-          context: context,
-        );
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+
+    if (email.isEmpty) {
+      showSnackBar(context, 'Por favor ingresa tu correo electrónico');
+      return;
+    }
+
+    if (!email.contains('@') || !email.contains('.')) {
+      showSnackBar(context, 'Por favor ingresa un correo válido');
+      return;
+    }
+
+    if (password.isEmpty) {
+      showSnackBar(context, 'Por favor ingresa tu contraseña');
+      return;
+    }
+
+    ref
+        .read(authControllerProvider.notifier)
+        .login(email: email, password: password, context: context);
   }
 
   void onForgotPassword() {
     final email = emailController.text.trim();
-    
+
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -77,10 +94,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              ref.read(authControllerProvider.notifier).sendPasswordReset(
-                    email: email,
-                    context: context,
-                  );
+              ref
+                  .read(authControllerProvider.notifier)
+                  .sendPasswordReset(email: email, context: context);
             },
             child: const Text('Enviar'),
           ),
