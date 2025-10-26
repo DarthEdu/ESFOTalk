@@ -24,18 +24,15 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
   final roarTextController = TextEditingController();
   List<File> images = [];
 
-
   @override
   void dispose() {
     super.dispose();
     roarTextController.dispose();
   }
 
-  void onPickImages() async{
+  void onPickImages() async {
     images = await pickImages();
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
@@ -61,32 +58,38 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
       body: currentUser == null
           ? const Loader()
           : SafeArea(
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundImage: NetworkImage(currentUser.profilePic),
-                        radius: 30,
-                      ),
-                      const SizedBox(width: 15),
-                      TextField(
-                        controller: roarTextController,
-                        style: const TextStyle(fontSize: 22),
-                        decoration: const InputDecoration(
-                          hintText: "¿Qué está pasando?",
-                          hintStyle: TextStyle(
-                            color: Pallete.greyColor,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          border: InputBorder.none,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          backgroundImage: NetworkImage(currentUser.profilePic),
+                          radius: 30,
                         ),
-                        maxLines: null,
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: TextField(
+                            controller: roarTextController,
+                            style: const TextStyle(fontSize: 22),
+                            decoration: const InputDecoration(
+                              hintText: "¿Qué está pasando?",
+                              hintStyle: TextStyle(
+                                color: Pallete.greyColor,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              border: InputBorder.none,
+                            ),
+                            maxLines: null,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
       bottomNavigationBar: Container(
