@@ -1,12 +1,12 @@
 import 'dart:io';
-
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:esfotalk_app/common/loading_page.dart';
 import 'package:esfotalk_app/common/rounded_small_button.dart';
 import 'package:esfotalk_app/constants/assets_constant.dart';
 import 'package:esfotalk_app/core/utils.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide CarouselController;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -88,6 +88,24 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
                         ),
                       ],
                     ),
+                    if (images.isNotEmpty)
+                      CarouselSlider(
+                        items: images
+                            .map(
+                              (file) => Container(
+                                width: MediaQuery.of(context).size.width,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                ),
+                                child: Image.file(file),
+                              ),
+                            )
+                            .toList(),
+                        options: CarouselOptions(
+                          height: 400,
+                          enableInfiniteScroll: false,
+                        ),
+                      ),
                   ],
                 ),
               ),

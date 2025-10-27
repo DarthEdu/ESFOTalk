@@ -3,7 +3,7 @@ import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/features/auth/view/signup_view.dart';
 import 'package:esfotalk_app/features/home/view/home_view.dart';
 import 'package:esfotalk_app/theme/theme.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide CarouselController;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 void main() {
   runApp(const ProviderScope(child: MyApp()));

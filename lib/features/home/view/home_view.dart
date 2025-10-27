@@ -3,7 +3,7 @@ import 'package:esfotalk_app/constants/ui_constants.dart';
 import 'package:esfotalk_app/features/roar/views/create_roar_view.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide CarouselController;
 import 'package:flutter_svg/svg.dart';
 
 class HomeView extends StatefulWidget {
