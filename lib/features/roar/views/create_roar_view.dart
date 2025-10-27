@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:esfotalk_app/common/loading_page.dart';
 import 'package:esfotalk_app/common/rounded_small_button.dart';
 import 'package:esfotalk_app/constants/assets_constant.dart';
