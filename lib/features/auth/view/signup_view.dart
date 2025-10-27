@@ -1,5 +1,4 @@
 import 'package:esfotalk_app/common/common.dart';
-import 'package:esfotalk_app/core/utils.dart';
 import 'package:esfotalk_app/constants/ui_constants.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/features/auth/view/login_view.dart';
@@ -29,33 +28,12 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
     super.dispose();
   }
 
-  void onSignUp() async {
-    final email = emailController.text.trim();
-    final password = passwordController.text;
-
-    if (email.isEmpty) {
-      showSnackBar(context, 'Por favor ingresa tu correo electrónico');
-      return;
-    }
-
-    if (!email.contains('@') || !email.contains('.')) {
-      showSnackBar(context, 'Por favor ingresa un correo válido');
-      return;
-    }
-
-    if (password.isEmpty) {
-      showSnackBar(context, 'Por favor ingresa una contraseña');
-      return;
-    }
-
-    if (password.length < 6) {
-      showSnackBar(context, 'La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
-
-    await ref
-        .read(authControllerProvider.notifier)
-        .signUp(email: email, password: password, context: context);
+  void onSignUp() {
+    ref.read(authControllerProvider.notifier).signUp(
+      email: emailController.text,
+      password: passwordController.text,
+      context: context,
+    );
   }
 
   @override

@@ -1,5 +1,4 @@
 {
     "cmake.ignoreCMakeListsMissing": true,
-    "java.configuration.updateBuildConfiguration": "interactive",
-    "CodeGPT.apiKey": "Gemini CLI"
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

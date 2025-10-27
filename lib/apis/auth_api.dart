@@ -14,23 +14,20 @@ final authAPIProvider = Provider((ref) {
 abstract class IAuthApi {
   /// Registro de usuario
   FutureEither<User> signUp({required String email, required String password});
-
+  
   /// Inicio de sesión, retorna la sesión creada
   FutureEither<Session> login({
     required String email,
     required String password,
   });
-
+  
   FutureEither<User> currentUserAccount();
-
+  
   /// Enviar email de verificación
   FutureEitherVoid sendVerificationEmail();
-
+  
   /// Enviar email de recuperación de contraseña
   FutureEitherVoid sendPasswordReset({required String email});
-
-  /// Cerrar sesión
-  FutureEitherVoid logout();
 }
 
 class AuthAPI implements IAuthApi {
@@ -43,9 +40,7 @@ class AuthAPI implements IAuthApi {
       final user = await _account.get();
       return right(user);
     } on AppwriteException catch (e, stackTrace) {
-      return left(
-        Failure(e.message ?? 'Some unexpected error occurred', stackTrace),
-      );
+      return left(Failure(e.message ?? 'Some unexpected error occurred', stackTrace));
     } catch (e, stackTrace) {
       return left(Failure(e.toString(), stackTrace));
     }
@@ -97,16 +92,12 @@ class AuthAPI implements IAuthApi {
   FutureEitherVoid sendVerificationEmail() async {
     try {
       await _account.createVerification(
-        url:
-            'https://darthedu.github.io/esfotalk_page_static?type=verification',
+        url: 'https://darthedu.github.io/esfotalk_page_static?type=verification',
       );
       return right(null);
     } on AppwriteException catch (e, stackTrace) {
       return left(
-        Failure(
-          e.message ?? 'Error al enviar email de verificación',
-          stackTrace,
-        ),
+        Failure(e.message ?? 'Error al enviar email de verificación', stackTrace),
       );
     } catch (e, stackTrace) {
       return left(Failure(e.toString(), stackTrace));
@@ -123,23 +114,8 @@ class AuthAPI implements IAuthApi {
       return right(null);
     } on AppwriteException catch (e, stackTrace) {
       return left(
-        Failure(
-          e.message ?? 'Error al enviar email de recuperación',
-          stackTrace,
-        ),
+        Failure(e.message ?? 'Error al enviar email de recuperación', stackTrace),
       );
-    } catch (e, stackTrace) {
-      return left(Failure(e.toString(), stackTrace));
-    }
-  }
-
-  @override
-  FutureEitherVoid logout() async {
-    try {
-      await _account.deleteSession(sessionId: 'current');
-      return right(null);
-    } on AppwriteException catch (e, stackTrace) {
-      return left(Failure(e.message ?? 'Error al cerrar sesión', stackTrace));
     } catch (e, stackTrace) {
       return left(Failure(e.toString(), stackTrace));
     }
