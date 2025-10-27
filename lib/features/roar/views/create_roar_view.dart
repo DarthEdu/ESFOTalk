@@ -24,15 +24,18 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
   final roarTextController = TextEditingController();
   List<File> images = [];
 
+
   @override
   void dispose() {
     super.dispose();
     roarTextController.dispose();
   }
 
-  void onPickImages() async {
+  void onPickImages() async{
     images = await pickImages();
-    setState(() {});
+    setState(() {
+
+    });
   }
 
   @override
@@ -88,24 +91,6 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
                         ),
                       ],
                     ),
-                    if (images.isNotEmpty)
-                      CarouselSlider(
-                        items: images
-                            .map(
-                              (file) => Container(
-                                width: MediaQuery.of(context).size.width,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 5,
-                                ),
-                                child: Image.file(file),
-                              ),
-                            )
-                            .toList(),
-                        options: CarouselOptions(
-                          height: 400,
-                          enableInfiniteScroll: false,
-                        ),
-                      ),
                   ],
                 ),
               ),
