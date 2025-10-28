@@ -1,5 +1,6 @@
 import 'package:esfotalk_app/common/common.dart';
 import 'package:esfotalk_app/features/roar/controller/roar_controller.dart';
+import 'package:esfotalk_app/features/roar/widgets/roar_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,7 +15,7 @@ class RoarList extends ConsumerWidget {
             return ListView.builder(itemCount: roars.length,
               itemBuilder: (BuildContext context, int index) {
                 final roar = roars[index];
-                return Text(roar.text);
+                return RoarCard(roar: roar);
               },
             );
           }, 
