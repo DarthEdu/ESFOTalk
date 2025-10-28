@@ -1,4 +1,5 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/models.dart';
 import 'package:esfotalk_app/constants/appwrite_constants.dart';
 import 'package:esfotalk_app/core/failure.dart';
 import 'package:esfotalk_app/core/providers.dart';
@@ -13,6 +14,7 @@ final roarAPIProvider = Provider((ref) {
 
 abstract class IRoarApi {
   FutureEitherVoid shareRoar(Roar roar);
+  Future<List<Document>> getRoars();
 }
 
 class RoarAPI implements IRoarApi {
@@ -35,5 +37,17 @@ class RoarAPI implements IRoarApi {
     } catch (e, st) {
       return left(Failure(e.toString(), st));
     }
+  }
+
+  @override
+  Future<List<Document>> getRoars() async {
+    final documents = await _databases.listDocuments(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.roarTable,
+      queries: [
+        Query.orderDesc('\$createdAt'),
+      ],
+    );
+    return documents.documents;
   }
 }

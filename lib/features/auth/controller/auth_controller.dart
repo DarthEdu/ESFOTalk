@@ -19,11 +19,9 @@ final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   );
 });
 
-final currentUserAccountProvider = FutureProvider((ref) async {
+final currentUserAccountProvider = FutureProvider((ref) {
   final authController = ref.watch(authControllerProvider.notifier);
-  final userEither = await authController.currentUserAccount();
-  // Devuelve el usuario si es exitoso, o null si hay un error.
-  return userEither.fold((l) => null, (r) => r);
+  return authController.currentUser();
 });
 
 final currentUserDetailsProvider = FutureProvider((ref) async {
@@ -132,8 +130,8 @@ class AuthController extends StateNotifier<bool> {
     );
   }
 
-  FutureEither<User> currentUserAccount() {
-    return _authAPI.currentUserAccount();
+  Future<User?> currentUser() async {
+    return (await _authAPI.currentUserAccount()).fold((l) => null, (r) => r);
   }
 
   Future<UserModel> getUserData(String uid) async {

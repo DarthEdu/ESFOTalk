@@ -18,6 +18,12 @@ final roarControllerProvider = StateNotifierProvider<RoarController, bool>((
   );
 });
 
+final getRoarsProvider = FutureProvider((ref) {
+  final roarController = ref.watch(roarControllerProvider.notifier);
+  return roarController.getRoars();
+  
+});
+
 class RoarController extends StateNotifier<bool> {
   final RoarAPI _roarAPI;
   final StorageAPI _storageAPI;
@@ -31,6 +37,11 @@ class RoarController extends StateNotifier<bool> {
        _ref = ref,
        _storageAPI = storageAPI,
        super(false);
+
+  Future<List<Roar>> getRoars() async {
+    final roarList = await _roarAPI.getRoars();
+    return roarList.map((doc) => Roar.fromMap(doc.data)).toList();
+  }
 
   void shareRoar({
     // Lógica para compartir un rugido

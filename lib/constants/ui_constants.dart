@@ -1,4 +1,5 @@
 import 'package:esfotalk_app/constants/assets_constant.dart';
+import 'package:esfotalk_app/features/roar/widgets/roar_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
@@ -6,6 +7,7 @@ import 'package:esfotalk_app/theme/pallete.dart';
 class UiConstants {
   static AppBar appBar() {
     return AppBar(
+      backgroundColor: Pallete.backgroundColor,
       title: SvgPicture.asset(
         AssetsConstants.dragonLogo,
         // ignore: deprecated_member_use
@@ -17,9 +19,8 @@ class UiConstants {
   }
 
   static List<Widget> bottomTabBarPages = [
-    Text('Feed Screen'),
+    RoarList(),
     Text('Search Screen'),
     Text('Notifications Screen'),
   ];
-
 }

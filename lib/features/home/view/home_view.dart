@@ -47,13 +47,15 @@ class _HomeViewState extends State<HomeView> {
               _page == 0
                   ? AssetsConstants.homeFilledIcon
                   : AssetsConstants.homeOutlinedIcon,
-              color: Pallete.whiteColor,
+              // ignore: deprecated_member_use
+              color: _page == 0 ? Pallete.whiteColor : Pallete.greyColor,
             ),
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
               AssetsConstants.searchIcon,
-              color: Pallete.whiteColor,
+              // ignore: deprecated_member_use
+              color: _page == 1 ? Pallete.whiteColor : Pallete.greyColor,
             ),
           ),
           BottomNavigationBarItem(
@@ -61,7 +63,8 @@ class _HomeViewState extends State<HomeView> {
               _page == 2
                   ? AssetsConstants.notifFilledIcon
                   : AssetsConstants.notifOutlinedIcon,
-              color: Pallete.whiteColor,
+              // ignore: deprecated_member_use
+              color: _page == 2 ? Pallete.whiteColor : Pallete.greyColor,
             ),
           ),
         ],
