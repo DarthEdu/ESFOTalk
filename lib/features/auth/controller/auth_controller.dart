@@ -19,16 +19,18 @@ final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   );
 });
 
-final currentUserAccountProvider = FutureProvider((ref) {
+final currentUserAccountProvider = FutureProvider((ref) async {
   final authController = ref.watch(authControllerProvider.notifier);
-  return authController.currentUser();
+  final userEither = await authController.currentUserAccount();
+  // Devuelve el usuario si es exitoso, o null si hay un error.
+  return userEither.fold((l) => null, (r) => r);
 });
 
 final currentUserDetailsProvider = FutureProvider((ref) async {
   final currentUserAccount = await ref.watch(currentUserAccountProvider.future);
   if (currentUserAccount == null) return null;
   final userDetails = await ref.watch(
-    userDetailsProvider(currentUserAccount.id).future,
+    userDetailsProvider(currentUserAccount.$id).future,
   );
   return userDetails;
 });
@@ -45,13 +47,6 @@ class AuthController extends StateNotifier<bool> {
     : _authAPI = authAPI,
       _userAPI = userAPI,
       super(false);
-
-  FutureEither<User> currentUserAccount() async {
-    state = true;
-    final res = await _authAPI.currentUserAccount();
-    state = false;
-    return res;
-  }
 
   Future<void> signUp({
     required String email,
@@ -70,7 +65,7 @@ class AuthController extends StateNotifier<bool> {
       (r) async {
         // Iniciar sesión automáticamente después del registro
         final loginRes = await _authAPI.login(email: email, password: password);
-        
+
         await loginRes.fold(
           (l) {
             if (context.mounted) {
@@ -89,7 +84,7 @@ class AuthController extends StateNotifier<bool> {
               bio: '',
               isDragonred: false,
             );
-            
+
             final res2 = await _userAPI.saveUserData(userModel: userModel);
             res2.fold(
               (l) {
@@ -137,7 +132,9 @@ class AuthController extends StateNotifier<bool> {
     );
   }
 
-  FutureOr<dynamic> currentUser() {}
+  FutureEither<User> currentUserAccount() {
+    return _authAPI.currentUserAccount();
+  }
 
   Future<UserModel> getUserData(String uid) async {
     final document = await _userAPI.getUserData(uid);
