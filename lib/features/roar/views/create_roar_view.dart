@@ -109,7 +109,7 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
                           );
                         },).toList(),
                         options: CarouselOptions(
-                          height: 200,
+                          height: 400,
                           enableInfiniteScroll: false,
                         ),
                       ),
