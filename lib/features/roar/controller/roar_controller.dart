@@ -21,7 +21,11 @@ final roarControllerProvider = StateNotifierProvider<RoarController, bool>((
 final getRoarsProvider = FutureProvider((ref) {
   final roarController = ref.watch(roarControllerProvider.notifier);
   return roarController.getRoars();
-  
+});
+
+final getLatestRoarProvider = StreamProvider((ref) {
+  final roarAPI = ref.watch(roarAPIProvider);
+  return roarAPI.getLatestRoars();
 });
 
 class RoarController extends StateNotifier<bool> {
@@ -72,25 +76,35 @@ class RoarController extends StateNotifier<bool> {
     final hashtags = _getHashtagsFromText(text);
     String link = _getLinkFromText(text);
     final user = _ref.read(currentUserDetailsProvider).value!;
-    final imageLinks = await _storageAPI.uploadImages(images);
-    Roar roar = Roar(
-      text: text,
-      hashtags: hashtags,
-      link: link,
-      imageLinks: imageLinks,
-      uid: user.uid,
-      roarType: RoarType.image,
-      roaredAt: DateTime.now(),
-      likes: [],
-      commentIds: [],
-      id: '',
-      reshareCount: 0,
+    final imageLinksResult = await _storageAPI.uploadImages(images);
+
+    imageLinksResult.fold(
+      (l) {
+        showSnackBar(context, l.message);
+        state = false;
+      },
+      (imageLinks) async {
+        Roar roar = Roar(
+          text: text,
+          hashtags: hashtags,
+          link: link,
+          imageLinks: imageLinks,
+          uid: user.uid,
+          roarType: RoarType.image,
+          roaredAt: DateTime.now(),
+          likes: [],
+          commentIds: [],
+          id: '',
+          reshareCount: 0,
+        );
+        final res = await _roarAPI.shareRoar(roar);
+        state = false;
+        res.fold(
+          (l) => showSnackBar(context, l.message),
+          (r) => Navigator.pop(context),
+        );
+      },
     );
-    final res = await _roarAPI.shareRoar(roar);
-    state = false;
-    res.fold((l) => showSnackBar(context, l.message), (r) {
-      Navigator.pop(context);
-    });
   }
 
   void _shareTextRoar({

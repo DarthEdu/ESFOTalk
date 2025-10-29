@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:appwrite/models.dart';
 import 'package:esfotalk_app/apis/auth_api.dart';
 import 'package:esfotalk_app/apis/user_api.dart';
-import 'package:esfotalk_app/core/core.dart';
 import 'package:esfotalk_app/core/utils.dart';
 import 'package:esfotalk_app/features/home/view/home_view.dart';
 import 'package:esfotalk_app/models/user_model.dart';
@@ -181,4 +180,6 @@ class AuthController extends StateNotifier<bool> {
       },
     );
   }
+
+  void logout(BuildContext context) {}
 }

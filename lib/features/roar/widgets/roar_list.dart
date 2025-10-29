@@ -1,6 +1,8 @@
 import 'package:esfotalk_app/common/common.dart';
+import 'package:esfotalk_app/constants/appwrite_constants.dart';
 import 'package:esfotalk_app/features/roar/controller/roar_controller.dart';
 import 'package:esfotalk_app/features/roar/widgets/roar_card.dart';
+import 'package:esfotalk_app/models/roar_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,16 +14,38 @@ class RoarList extends ConsumerWidget {
         .watch(getRoarsProvider)
         .when(
           data: (roars) {
-            return ListView.builder(itemCount: roars.length,
-              itemBuilder: (BuildContext context, int index) {
-                final roar = roars[index];
-                return RoarCard(roar: roar);
-              },
-            );
-          }, 
-          error: (error, stackTrace) => ErrorText(
-            error: error.toString(),),
+            return ref
+                .watch(getLatestRoarProvider)
+                .when(
+                  data: (data) {
+                    if (data.events.contains(
+                      'databases.*.collections.${AppwriteConstants.roarTable}.documents.*.create',)) {
+                        roars.insert(0, Roar.fromMap(
+                          data.payload,
+                        ));
+                      }
+                    return ListView.builder(itemCount: roars.length,
+                      itemBuilder: (BuildContext context, int index) {
+                      final roar = roars[index];
+                      return RoarCard(roar: roar);
+                      },
+                    );
+                  },
+                  error: (error, stackTrace) =>
+                      ErrorText(error: error.toString()),
+                  loading: () {
+                    return ListView.builder(itemCount: roars.length,
+                      itemBuilder: (BuildContext context, int index) {
+                      final roar = roars[index];
+                      return RoarCard(roar: roar);
+                      },
+                    );
+                  },
+                );
+          },
+          error: (error, stackTrace) => ErrorText(error: error.toString()),
 
-          loading: () => const Loader());
+          loading: () => const Loader(),
+        );
   }
 }

@@ -9,17 +9,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fpdart/fpdart.dart';
 
 final roarAPIProvider = Provider((ref) {
-  return RoarAPI(databases: ref.watch(appwriteDatabaseProvider));
+  return RoarAPI(
+    databases: ref.watch(appwriteDatabaseProvider),
+    realtime: ref.watch(appwriteRealtimeProvider),
+  );
 });
 
 abstract class IRoarApi {
   FutureEitherVoid shareRoar(Roar roar);
   Future<List<Document>> getRoars();
+  Stream<RealtimeMessage> getLatestRoars();
 }
 
 class RoarAPI implements IRoarApi {
   final Databases _databases;
-  RoarAPI({required Databases databases}) : _databases = databases;
+  final Realtime _realtime;
+
+  RoarAPI({required Databases databases, required Realtime realtime})
+    : _databases = databases,
+      _realtime = realtime;
 
   @override
   FutureEitherVoid shareRoar(Roar roar) async {
@@ -44,10 +52,15 @@ class RoarAPI implements IRoarApi {
     final documents = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.roarTable,
-      queries: [
-        Query.orderDesc('\$createdAt'),
-      ],
+      queries: [Query.orderDesc('\$createdAt')],
     );
     return documents.documents;
+  }
+
+  @override
+  Stream<RealtimeMessage> getLatestRoars() {
+    return _realtime.subscribe([
+      'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.roarTable}.documents',
+    ]).stream;
   }
 }
