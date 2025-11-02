@@ -5,6 +5,7 @@ import 'package:esfotalk_app/core/enums/roar_type_enum.dart';
 import 'package:esfotalk_app/core/utils.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/models/roar_model.dart';
+import 'package:esfotalk_app/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -45,6 +46,18 @@ class RoarController extends StateNotifier<bool> {
   Future<List<Roar>> getRoars() async {
     final roarList = await _roarAPI.getRoars();
     return roarList.map((doc) => Roar.fromMap(doc.data)).toList();
+  }
+
+  void likeRoar(Roar roar, UserModel user) async{
+    List<String> likes = roar.likes;
+    if (likes.contains(user.uid)) {
+      likes.remove(user.uid);
+    } else {
+      likes.add(user.uid);
+    }
+    roar = roar.copyWith(likes: likes);
+    final res = await _roarAPI.likeRoar(roar);
+    res.fold((l) => null, (r) => null);
   }
 
   void shareRoar({

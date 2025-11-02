@@ -4,6 +4,7 @@ import 'package:esfotalk_app/common/loading_page.dart';
 import 'package:esfotalk_app/constants/assets_constant.dart';
 import 'package:esfotalk_app/core/enums/roar_type_enum.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
+import 'package:esfotalk_app/features/roar/controller/roar_controller.dart';
 import 'package:esfotalk_app/features/roar/widgets/carousel_image.dart';
 import 'package:esfotalk_app/features/roar/widgets/hashtag_text.dart';
 import 'package:esfotalk_app/features/roar/widgets/roar_icon_button.dart';
@@ -11,6 +12,8 @@ import 'package:esfotalk_app/models/roar_model.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:like_button/like_button.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class RoarCard extends ConsumerWidget {
@@ -19,7 +22,8 @@ class RoarCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref
+    final currentUser = ref.watch(currentUserDetailsProvider).value;
+    return currentUser == null ? const SizedBox() : ref
         .watch(userDetailsProvider(roar.uid))
         .when(
           data: (user) {
@@ -101,12 +105,40 @@ class RoarCard extends ConsumerWidget {
                                   text: roar.reshareCount.toString(),
                                   onTap: () {},
                                 ),
-                                // Aquí puedes agregar botones de interacción
-                                RoarIconButton(
-                                  pathName: AssetsConstants.likeOutlinedIcon,
-                                  text: roar.likes.length.toString(),
-                                  onTap: () {},
+                                LikeButton(
+                                  size: 25,
+                                  onTap: (isLiked) async {
+                                    ref.read(roarControllerProvider.notifier).likeRoar(roar, user);
+                                    return !isLiked;
+                                  },
+                                  likeBuilder: (isLiked) {
+                                    return isLiked
+                                        ? SvgPicture.asset(
+                                            AssetsConstants.likeFilledIcon,
+                                            color: Pallete.redColor,
+                                          )
+                                        : SvgPicture.asset(
+                                            AssetsConstants.likeOutlinedIcon,
+                                            color: Pallete.greyColor,
+                                          );
+                                  },
+                                  likeCount: roar.likes.length,
+                                  countBuilder: (likeCount, isLiked, text) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(left: 2.0),
+                                      child: Text(
+                                        text,
+                                        style: TextStyle(
+                                          color: isLiked
+                                              ? Pallete.redColor
+                                              : Pallete.whiteColor,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
+                                // Aquí puedes agregar botones de interacción
                                 IconButton(
                                   onPressed: () {},
                                   icon: const Icon(
@@ -118,16 +150,13 @@ class RoarCard extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 1,)
+                          const SizedBox(height: 1),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const Divider(
-                  color: Pallete.greyColor,
-                  thickness: 0.2,
-                ),
+                const Divider(color: Pallete.greyColor, thickness: 0.2),
               ],
             );
           },

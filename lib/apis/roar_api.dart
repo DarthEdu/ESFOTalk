@@ -19,6 +19,7 @@ abstract class IRoarApi {
   FutureEitherVoid shareRoar(Roar roar);
   Future<List<Document>> getRoars();
   Stream<RealtimeMessage> getLatestRoars();
+  FutureEither<Document> likeRoar(Roar roar);
 }
 
 class RoarAPI implements IRoarApi {
@@ -62,5 +63,24 @@ class RoarAPI implements IRoarApi {
     return _realtime.subscribe([
       'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.roarTable}.documents',
     ]).stream;
+  }
+
+  @override
+  FutureEither<Document> likeRoar(Roar roar) async {
+    try {
+      final document = await _databases.updateDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.roarTable,
+        documentId: roar.id,
+        data: {
+          'likes': roar.likes,
+        },
+      );
+      return right(document);
+    } on AppwriteException catch (e, st) {
+      return left(Failure(e.message ?? 'Some unexpected error occurred', st));
+    } catch (e, st) {
+      return left(Failure(e.toString(), st));
+    }
   }
 }
