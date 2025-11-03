@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:appwrite/appwrite.dart';
 import 'package:esfotalk_app/constants/appwrite_constants.dart';
@@ -16,14 +16,17 @@ class StorageAPI {
   final Storage _storage;
   StorageAPI({required Storage storage}) : _storage = storage;
 
-  FutureEither<List<String>> uploadImages(List<File> files) async {
+  FutureEither<List<String>> uploadImages(List<io.File> files) async {
     List<String> imageLinks = [];
     try {
       for (final file in files) {
         final uploadedFile = await _storage.createFile(
           bucketId: AppwriteConstants.imagesBucket,
           fileId: ID.unique(),
-          file: InputFile.fromPath(path: file.path),
+          file: InputFile.fromPath(
+            path: file.path,
+            filename: file.path.split('/').last,
+          ),
         );
         imageLinks.add(AppwriteConstants.imageUrl(uploadedFile.$id));
       }

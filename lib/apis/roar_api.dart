@@ -16,10 +16,13 @@ final roarAPIProvider = Provider((ref) {
 });
 
 abstract class IRoarApi {
-  FutureEitherVoid shareRoar(Roar roar);
+  FutureEither<Document> shareRoar(Roar roar);
   Future<List<Document>> getRoars();
   Stream<RealtimeMessage> getLatestRoars();
   FutureEither<Document> likeRoar(Roar roar);
+  FutureEither<Document> updateReshareCount(Roar roar);
+  Future<List<Document>> getRepliesToRoar(String roarId);
+  Future<Document> getRoarById(String id);
 }
 
 class RoarAPI implements IRoarApi {
@@ -31,16 +34,16 @@ class RoarAPI implements IRoarApi {
       _realtime = realtime;
 
   @override
-  FutureEitherVoid shareRoar(Roar roar) async {
+  FutureEither<Document> shareRoar(Roar roar) async {
     try {
       // ignore: deprecated_member_use
-      await _databases.createDocument(
+      final document = await _databases.createDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.roarTable,
-        documentId: ID.unique(),
+        documentId: ID.unique(), // Appwrite generará un ID único
         data: roar.toMap(),
       );
-      return right(null);
+      return right(document);
     } on AppwriteException catch (e, st) {
       return left(Failure(e.message ?? 'Some unexpected error occurred', st));
     } catch (e, st) {
@@ -72,9 +75,7 @@ class RoarAPI implements IRoarApi {
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.roarTable,
         documentId: roar.id,
-        data: {
-          'likes': roar.likes,
-        },
+        data: {'likes': roar.likes},
       );
       return right(document);
     } on AppwriteException catch (e, st) {
@@ -82,5 +83,41 @@ class RoarAPI implements IRoarApi {
     } catch (e, st) {
       return left(Failure(e.toString(), st));
     }
+  }
+
+  @override
+  FutureEither<Document> updateReshareCount(Roar roar) async {
+    try {
+      final document = await _databases.updateDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.roarTable,
+        documentId: roar.id,
+        data: {'reshareCount': roar.reshareCount},
+      );
+      return right(document);
+    } on AppwriteException catch (e, st) {
+      return left(Failure(e.message ?? 'Some unexpected error occurred', st));
+    } catch (e, st) {
+      return left(Failure(e.toString(), st));
+    }
+  }
+
+  @override
+  Future<List<Document>> getRepliesToRoar(String roarId) async {
+    final document = await _databases.listDocuments(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.roarTable,
+      queries: [Query.equal('repliedTo', roarId)],
+    );
+    return document.documents;
+  }
+
+  @override
+  Future<Document> getRoarById(String id) async {
+    return _databases.getDocument(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.roarTable,
+      documentId: id,
+    );
   }
 }

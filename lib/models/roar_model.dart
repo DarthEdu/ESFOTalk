@@ -14,6 +14,8 @@ class Roar {
   final List<String> commentIds;
   final String id;
   final int reshareCount;
+  final String reroaredBy;
+  final String repliedTo;
   const Roar({
     required this.text,
     required this.hashtags,
@@ -26,6 +28,8 @@ class Roar {
     required this.commentIds,
     required this.id,
     required this.reshareCount,
+    required this.reroaredBy,
+    required this.repliedTo,
   });
 
   Roar copyWith({
@@ -40,6 +44,8 @@ class Roar {
     List<String>? commentIds,
     String? id,
     int? reshareCount,
+    String? reroaredBy,
+    String? repliedTo,
   }) {
     return Roar(
       text: text ?? this.text,
@@ -53,6 +59,8 @@ class Roar {
       commentIds: commentIds ?? this.commentIds,
       id: id ?? this.id,
       reshareCount: reshareCount ?? this.reshareCount,
+      reroaredBy: reroaredBy ?? this.reroaredBy,
+      repliedTo: repliedTo ?? this.repliedTo,
     );
   }
 
@@ -68,6 +76,8 @@ class Roar {
       'likes': likes,
       'commentIds': commentIds,
       'reshareCount': reshareCount,
+      'reroaredBy': reroaredBy,
+      'repliedTo': repliedTo,
     };
   }
 
@@ -84,12 +94,14 @@ class Roar {
       commentIds: List<String>.from(map['commentIds']),
       id: map['\$id'] ?? '',
       reshareCount: map['reshareCount']?.toInt() ?? 0,
+      reroaredBy: map['reroaredBy'] ?? '',
+      repliedTo: map['repliedTo'] ?? '',
     );
   }
 
   @override
   String toString() {
-    return 'Roar(text: $text, hashtags: $hashtags, link: $link, imageLinks: $imageLinks, uid: $uid, roarType: $roarType, roaredAt: $roaredAt, likes: $likes, commentIds: $commentIds, id: $id, reshareCount: $reshareCount)';
+    return 'Roar(text: $text, hashtags: $hashtags, link: $link, imageLinks: $imageLinks, uid: $uid, roarType: $roarType, roaredAt: $roaredAt, likes: $likes, commentIds: $commentIds, id: $id, reshareCount: $reshareCount, reroaredBy: $reroaredBy, repliedTo: $repliedTo)';
   }
 
   @override
@@ -106,7 +118,9 @@ class Roar {
         listEquals(other.likes, likes) &&
         listEquals(other.commentIds, commentIds) &&
         other.id == id &&
-        other.reshareCount == reshareCount;
+        other.reshareCount == reshareCount &&
+        other.reroaredBy == reroaredBy &&
+        other.repliedTo == repliedTo;
   }
 
   @override
@@ -121,6 +135,8 @@ class Roar {
         likes.hashCode ^
         commentIds.hashCode ^
         id.hashCode ^
-        reshareCount.hashCode;
+        reshareCount.hashCode ^
+        reroaredBy.hashCode ^
+        repliedTo.hashCode;
   }
 }

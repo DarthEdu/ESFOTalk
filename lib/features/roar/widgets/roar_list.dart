@@ -19,25 +19,48 @@ class RoarList extends ConsumerWidget {
                 .when(
                   data: (data) {
                     if (data.events.contains(
-                      'databases.*.collections.${AppwriteConstants.roarTable}.documents.*.create',)) {
-                        roars.insert(0, Roar.fromMap(
-                          data.payload,
-                        ));
-                      }
-                    return ListView.builder(itemCount: roars.length,
+                      'databases.*.collections.${AppwriteConstants.roarTable}.documents.*.create',
+                    )) {
+                      roars.insert(0, Roar.fromMap(data.payload));
+                    } else if (data.events.contains(
+                      'databases.*.collections.${AppwriteConstants.roarTable}.documents.*.update',
+                    )) {
+                      final startingPoint = data.events[0].lastIndexOf(
+                        'documents.',
+                      );
+                      final endingPoint = data.events[0].lastIndexOf('.update');
+                      final roarId = data.events[0]
+                          .substring(
+                            startingPoint + 10,
+                            endingPoint,
+                          )
+                          .toString();
+
+                      var roar = roars
+                          .where((element) => element.id == roarId)
+                          .first;
+
+                      final roarIndex = roars.indexOf(roar);
+                      roars.removeWhere((element) => element.id == roarId);
+                      roar = Roar.fromMap(data.payload);
+                      roars.insert(roarIndex, roar);
+                    }
+                    return ListView.builder(
+                      itemCount: roars.length,
                       itemBuilder: (BuildContext context, int index) {
-                      final roar = roars[index];
-                      return RoarCard(roar: roar);
+                        final roar = roars[index];
+                        return RoarCard(roar: roar);
                       },
                     );
                   },
                   error: (error, stackTrace) =>
                       ErrorText(error: error.toString()),
                   loading: () {
-                    return ListView.builder(itemCount: roars.length,
+                    return ListView.builder(
+                      itemCount: roars.length,
                       itemBuilder: (BuildContext context, int index) {
-                      final roar = roars[index];
-                      return RoarCard(roar: roar);
+                        final roar = roars[index];
+                        return RoarCard(roar: roar);
                       },
                     );
                   },

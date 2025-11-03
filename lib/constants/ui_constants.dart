@@ -1,4 +1,5 @@
 import 'package:esfotalk_app/constants/assets_constant.dart';
+import 'package:esfotalk_app/features/explore/view/explore_view.dart';
 import 'package:esfotalk_app/features/roar/widgets/roar_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -20,7 +21,7 @@ class UiConstants {
 
   static List<Widget> bottomTabBarPages = [
     RoarList(),
-    Text('Search Screen'),
+    ExploreView(),
     Text('Notifications Screen'),
   ];
 }

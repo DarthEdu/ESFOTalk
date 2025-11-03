@@ -8,11 +8,11 @@ class RoarIconButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const RoarIconButton({
-    Key? key,
+    super.key,
     required this .pathName,
     required this.text,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:io' as io;
+import 'package:appwrite/appwrite.dart';
 import 'package:esfotalk_app/apis/roar_api.dart';
 import 'package:esfotalk_app/apis/storage_api.dart';
 import 'package:esfotalk_app/core/enums/roar_type_enum.dart';
@@ -24,9 +25,19 @@ final getRoarsProvider = FutureProvider((ref) {
   return roarController.getRoars();
 });
 
+final getRepliesToRoarsProvider = FutureProvider.family((ref, String roarId) {
+  final roarController = ref.watch(roarControllerProvider.notifier);
+  return roarController.getRepliesToRoar(roarId);
+});
+
 final getLatestRoarProvider = StreamProvider((ref) {
   final roarAPI = ref.watch(roarAPIProvider);
   return roarAPI.getLatestRoars();
+});
+
+final getRoarByIdProvider = FutureProvider.family((ref, String id) {
+  final roarController = ref.watch(roarControllerProvider.notifier);
+  return roarController.getRoarById(id);
 });
 
 class RoarController extends StateNotifier<bool> {
@@ -48,7 +59,12 @@ class RoarController extends StateNotifier<bool> {
     return roarList.map((doc) => Roar.fromMap(doc.data)).toList();
   }
 
-  void likeRoar(Roar roar, UserModel user) async{
+  Future<Roar> getRoarById(String id) async {
+    final roar = await _roarAPI.getRoarById(id);
+    return Roar.fromMap((roar).data);
+  }
+
+  void likeRoar(Roar roar, UserModel user) async {
     List<String> likes = roar.likes;
     if (likes.contains(user.uid)) {
       likes.remove(user.uid);
@@ -60,11 +76,38 @@ class RoarController extends StateNotifier<bool> {
     res.fold((l) => null, (r) => null);
   }
 
+  void reshareRoar(
+    Roar roar,
+    UserModel currentUser,
+    BuildContext context,
+  ) async {
+    roar = roar.copyWith(
+      reroaredBy: currentUser.name,
+      likes: [],
+      commentIds: [],
+      reshareCount: roar.reshareCount + 1,
+    );
+    final res = await _roarAPI.updateReshareCount(roar);
+    res.fold((l) => showSnackBar(context, l.message), (r) async {
+      roar = roar.copyWith(
+        id: ID.unique(),
+        reshareCount: 0,
+        roaredAt: DateTime.now(),
+      );
+      final res2 = await _roarAPI.shareRoar(roar);
+      res2.fold(
+        (l) => showSnackBar(context, l.message),
+        (r) => showSnackBar(context, 'Rugido re-compartido con éxito'),
+      );
+    });
+  }
+
   void shareRoar({
     // Lógica para compartir un rugido
-    required List<File> images,
+    required List<io.File> images,
     required String text,
     required BuildContext context,
+    required String repliedTo,
   }) {
     if (text.isEmpty) {
       showSnackBar(context, 'Por favor ingresa un texto para el rugido.');
@@ -73,17 +116,28 @@ class RoarController extends StateNotifier<bool> {
 
     if (images.isNotEmpty) {
       // Lógica para subir imágenes
-      _shareImageRoar(images: images, text: text, context: context);
+      _shareImageRoar(
+        images: images,
+        text: text,
+        context: context,
+        repliedTo: repliedTo,
+      );
     } else {
-      _shareTextRoar(text: text, context: context);
+      _shareTextRoar(text: text, context: context, repliedTo: repliedTo);
     }
+  }
+
+  Future<List<Roar>> getRepliesToRoar(String roarId) async {
+    final documents = await _roarAPI.getRepliesToRoar(roarId);
+    return documents.map((roar) => Roar.fromMap(roar.data)).toList();
   }
 
   // Lógica para crear el rugido con el texto y las imágenes subidas
   void _shareImageRoar({
-    required List<File> images,
+    required List<io.File> images,
     required String text,
     required BuildContext context,
+    required String repliedTo,
   }) async {
     state = true;
     final hashtags = _getHashtagsFromText(text);
@@ -109,6 +163,8 @@ class RoarController extends StateNotifier<bool> {
           commentIds: [],
           id: '',
           reshareCount: 0,
+          reroaredBy: '',
+          repliedTo: repliedTo,
         );
         final res = await _roarAPI.shareRoar(roar);
         state = false;
@@ -123,6 +179,7 @@ class RoarController extends StateNotifier<bool> {
   void _shareTextRoar({
     required String text,
     required BuildContext context,
+    required String repliedTo,
   }) async {
     state = true;
     final hashtags = _getHashtagsFromText(text);
@@ -140,6 +197,8 @@ class RoarController extends StateNotifier<bool> {
       commentIds: [],
       id: '',
       reshareCount: 0,
+      reroaredBy: '',
+      repliedTo: repliedTo,
     );
     final res = await _roarAPI.shareRoar(roar);
     state = false;

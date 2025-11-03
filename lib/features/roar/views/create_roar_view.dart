@@ -37,6 +37,7 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
           text: roarTextController.text,
           images: images,
           context: context,
+          repliedTo: '',
         );
   }
 
