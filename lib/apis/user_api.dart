@@ -16,6 +16,7 @@ abstract class IUserApi {
   /// Obtiene la cuenta del usuario actual
   FutureEitherVoid saveUserData({required UserModel userModel});
   Future<Document> getUserData(String uid);
+  Future<List<Document>> searchUserByName(String name);
 }
 
 class UserAPI implements IUserApi {
@@ -24,7 +25,7 @@ class UserAPI implements IUserApi {
 
   @override
   FutureEitherVoid saveUserData({required UserModel userModel}) async {
-    try{
+    try {
       // ignore: deprecated_member_use
       await _databases.createDocument(
         databaseId: AppwriteConstants.databaseId,
@@ -42,6 +43,20 @@ class UserAPI implements IUserApi {
 
   @override
   Future<Document> getUserData(String uid) {
-    return _databases.getDocument(databaseId: AppwriteConstants.databaseId, collectionId: AppwriteConstants.usersTable, documentId: uid);
+    return _databases.getDocument(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.usersTable,
+      documentId: uid,
+    );
+  }
+
+  @override
+  Future<List<Document>> searchUserByName(String name) async {
+    final documents = await _databases.listDocuments(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.usersTable,
+      queries: [Query.search('name', name)],
+    );
+    return documents.documents;
   }
 }
