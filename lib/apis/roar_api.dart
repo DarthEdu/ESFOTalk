@@ -23,6 +23,7 @@ abstract class IRoarApi {
   FutureEither<Document> updateReshareCount(Roar roar);
   Future<List<Document>> getRepliesToRoar(String roarId);
   Future<Document> getRoarById(String id);
+  Future<List<Document>> getUserRoars(String uid);
 }
 
 class RoarAPI implements IRoarApi {
@@ -119,5 +120,15 @@ class RoarAPI implements IRoarApi {
       collectionId: AppwriteConstants.roarTable,
       documentId: id,
     );
+  }
+  
+  @override
+  Future<List<Document>> getUserRoars(String uid) async{
+    final documents = await _databases.listDocuments(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.roarTable,
+      queries: [Query.equal('uid', uid)],
+    );
+    return documents.documents;
   }
 }
