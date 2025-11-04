@@ -2,9 +2,11 @@ import 'dart:io' as io;
 import 'package:appwrite/appwrite.dart';
 import 'package:esfotalk_app/apis/roar_api.dart';
 import 'package:esfotalk_app/apis/storage_api.dart';
+import 'package:esfotalk_app/core/enums/notification_type_enum.dart';
 import 'package:esfotalk_app/core/enums/roar_type_enum.dart';
 import 'package:esfotalk_app/core/utils.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
+import 'package:esfotalk_app/features/notifications/controller/notification_controller.dart';
 import 'package:esfotalk_app/models/roar_model.dart';
 import 'package:esfotalk_app/models/user_model.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +19,7 @@ final roarControllerProvider = StateNotifierProvider<RoarController, bool>((
     ref: ref,
     roarAPI: ref.watch(roarAPIProvider),
     storageAPI: ref.watch(storageAPIProvider),
+    notificationController: ref.watch(notificationControllerProvider.notifier),
   );
 });
 
@@ -43,15 +46,18 @@ final getRoarByIdProvider = FutureProvider.family((ref, String id) {
 class RoarController extends StateNotifier<bool> {
   final RoarAPI _roarAPI;
   final StorageAPI _storageAPI;
+  final NotificationController _notificationController;
   final Ref _ref;
 
   RoarController({
     required Ref ref,
     required RoarAPI roarAPI,
     required StorageAPI storageAPI,
+    required NotificationController notificationController,
   }) : _roarAPI = roarAPI,
        _ref = ref,
        _storageAPI = storageAPI,
+       _notificationController = notificationController,
        super(false);
 
   Future<List<Roar>> getRoars() async {
@@ -73,7 +79,14 @@ class RoarController extends StateNotifier<bool> {
     }
     roar = roar.copyWith(likes: likes);
     final res = await _roarAPI.likeRoar(roar);
-    res.fold((l) => null, (r) => null);
+    res.fold((l) => null, (r) {
+      _notificationController.createNotification(
+        text: '${user.name} le gusta tu rugido ${roar.text}',
+        postId: roar.id,
+        uid: roar.uid,
+        notificationType: NotificationType.like,
+      );
+    });
   }
 
   void reshareRoar(

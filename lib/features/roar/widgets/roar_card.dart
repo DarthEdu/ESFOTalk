@@ -45,11 +45,14 @@ class RoarCard extends ConsumerWidget {
                               child: GestureDetector(
                                 onTap: () {
                                   Navigator.push(
-                                    context, UserProfileView.route(user)
+                                    context,
+                                    UserProfileView.route(user),
                                   );
                                 },
                                 child: CircleAvatar(
-                                  backgroundImage: NetworkImage(user.profilePic),
+                                  backgroundImage: NetworkImage(
+                                    user.profilePic,
+                                  ),
                                   radius: 35,
                                 ),
                               ),
@@ -106,7 +109,13 @@ class RoarCard extends ConsumerWidget {
                                         )
                                         .when(
                                           data: (repliedToRoar) {
-                                            final replyingToUser = ref.watch(userDetailsProvider(repliedToRoar.uid)).value;
+                                            final replyingToUser = ref
+                                                .watch(
+                                                  userDetailsProvider(
+                                                    repliedToRoar.uid,
+                                                  ),
+                                                )
+                                                .value;
                                             return RichText(
                                               text: TextSpan(
                                                 text: 'Respondiendo a ',
@@ -116,7 +125,8 @@ class RoarCard extends ConsumerWidget {
                                                 ),
                                                 children: [
                                                   TextSpan(
-                                                    text: '@${replyingToUser?.name}',
+                                                    text:
+                                                        '@${replyingToUser?.name}',
                                                     style: const TextStyle(
                                                       color: Pallete.whiteColor,
                                                       fontSize: 15,
@@ -193,7 +203,7 @@ class RoarCard extends ConsumerWidget {
                                                   roarControllerProvider
                                                       .notifier,
                                                 )
-                                                .likeRoar(roar, user);
+                                                .likeRoar(roar, currentUser);
                                             return !isLiked;
                                           },
                                           likeBuilder: (isLiked) {
