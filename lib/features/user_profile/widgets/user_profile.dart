@@ -1,6 +1,7 @@
 import 'package:esfotalk_app/common/error_page.dart';
 import 'package:esfotalk_app/common/loading_page.dart';
 import 'package:esfotalk_app/constants/appwrite_constants.dart';
+import 'package:esfotalk_app/constants/assets_constant.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/features/roar/controller/roar_controller.dart';
 import 'package:esfotalk_app/features/roar/widgets/roar_card.dart';
@@ -12,6 +13,7 @@ import 'package:esfotalk_app/models/user_model.dart';
 import 'package:esfotalk_app/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 class UserProfile extends ConsumerWidget {
   final UserModel user;
@@ -78,8 +80,8 @@ class UserProfile extends ConsumerWidget {
                             currentUser.uid == user.uid
                                 ? 'Editar Perfil'
                                 : currentUser.following.contains(user.uid)
-                                    ? 'Dejar de seguir'
-                                    : 'Seguir',
+                                ? 'Dejar de seguir'
+                                : 'Seguir',
                             style: const TextStyle(color: Pallete.whiteColor),
                           ),
                         ),
@@ -91,12 +93,23 @@ class UserProfile extends ConsumerWidget {
                   padding: const EdgeInsets.all(8),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      Text(
-                        user.name,
-                        style: const TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            user.name,
+                            style: const TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (user.isDragonred)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 3.0),
+                              child: SvgPicture.asset(
+                                AssetsConstants.verifiedIcon,
+                              ),
+                            ),
+                        ],
                       ),
                       Text(
                         '@${user.name}',

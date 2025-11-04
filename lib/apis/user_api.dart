@@ -24,6 +24,7 @@ abstract class IUserApi {
   Stream<RealtimeMessage> getLatestUserProfileData();
   FutureEitherVoid followUser(UserModel user);
   FutureEitherVoid addToFollowing(UserModel user);
+  
 }
 
 class UserAPI implements IUserApi {

@@ -1,5 +1,6 @@
 import 'package:esfotalk_app/constants/constants.dart';
 import 'package:esfotalk_app/constants/ui_constants.dart';
+import 'package:esfotalk_app/features/home/widgets/side_drawer.dart';
 import 'package:esfotalk_app/features/roar/views/create_roar_view.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/cupertino.dart';
@@ -31,11 +32,14 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _page == 0 ?appBar : null,
+      appBar: _page == 0 ? appBar : null,
       body: IndexedStack(index: _page, children: UiConstants.bottomTabBarPages),
       floatingActionButton: FloatingActionButton(
         onPressed: onCreateRoar,
         child: const Icon(Icons.add, color: Pallete.whiteColor, size: 28),
+      ),
+      drawer: const SideDrawer(
+
       ),
       bottomNavigationBar: CupertinoTabBar(
         currentIndex: _page,

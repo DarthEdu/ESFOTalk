@@ -4,6 +4,7 @@ import 'package:appwrite/models.dart';
 import 'package:esfotalk_app/apis/auth_api.dart';
 import 'package:esfotalk_app/apis/user_api.dart';
 import 'package:esfotalk_app/core/utils.dart';
+import 'package:esfotalk_app/features/auth/view/signup_view.dart';
 import 'package:esfotalk_app/features/home/view/home_view.dart';
 import 'package:esfotalk_app/models/user_model.dart';
 import 'package:flutter/material.dart' hide CarouselController;
@@ -181,5 +182,14 @@ class AuthController extends StateNotifier<bool> {
     );
   }
 
-  void logout(BuildContext context) {}
+  void logout(BuildContext context) async {
+    final res = await _authAPI.logout();
+    res.fold((l) => null, (r) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        SignUpView.route(),
+        (route) => false,
+      );
+    });
+  }
 }

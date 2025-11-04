@@ -84,7 +84,9 @@ class RoarCard extends ConsumerWidget {
                                   Row(
                                     children: [
                                       Container(
-                                        margin: const EdgeInsets.only(right: 5),
+                                        margin: EdgeInsets.only(
+                                          right: user.isDragonred ? 1 : 5,
+                                        ),
                                         child: Text(
                                           user.name,
                                           style: const TextStyle(
@@ -93,6 +95,13 @@ class RoarCard extends ConsumerWidget {
                                           ),
                                         ),
                                       ),
+                                      if (user.isDragonred)
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 5.0),
+                                          child: SvgPicture.asset(
+                                            AssetsConstants.verifiedIcon,
+                                          ),
+                                        ),
                                       Text(
                                         '@${user.name} · ${timeago.format(roar.roaredAt, locale: 'en_short')}',
                                         style: const TextStyle(
