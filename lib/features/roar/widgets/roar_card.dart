@@ -9,6 +9,7 @@ import 'package:esfotalk_app/features/roar/views/roar_reply_view.dart';
 import 'package:esfotalk_app/features/roar/widgets/carousel_image.dart';
 import 'package:esfotalk_app/features/roar/widgets/hashtag_text.dart';
 import 'package:esfotalk_app/features/roar/widgets/roar_icon_button.dart';
+import 'package:esfotalk_app/features/user_profile/view/user_profile_view.dart';
 import 'package:esfotalk_app/models/roar_model.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/material.dart';
@@ -41,9 +42,16 @@ class RoarCard extends ConsumerWidget {
                           children: [
                             Container(
                               margin: const EdgeInsets.all(10),
-                              child: CircleAvatar(
-                                backgroundImage: NetworkImage(user.profilePic),
-                                radius: 35,
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context, UserProfileView.route(user)
+                                  );
+                                },
+                                child: CircleAvatar(
+                                  backgroundImage: NetworkImage(user.profilePic),
+                                  radius: 35,
+                                ),
                               ),
                             ),
                             Expanded(

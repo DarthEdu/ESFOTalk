@@ -34,7 +34,7 @@ class UserProfile extends ConsumerWidget {
                       Positioned.fill(
                         child: user.bannerPic.isEmpty
                             ? Container(color: Pallete.vinoColor)
-                            : Image.network(user.bannerPic),
+                            : Image.network(user.bannerPic, fit: BoxFit.fitWidth),
                       ),
                       Positioned(
                         bottom: 0,

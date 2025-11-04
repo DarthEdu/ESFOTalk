@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:esfotalk_app/common/loading_page.dart';
 import 'package:esfotalk_app/core/utils.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
+import 'package:esfotalk_app/features/user_profile/controller/user_profile_controller.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,10 +19,21 @@ class EditProfileView extends ConsumerStatefulWidget {
 }
 
 class _EditProfileViewState extends ConsumerState<EditProfileView> {
-  final nameController = TextEditingController();
-  final bioController = TextEditingController();
+  late TextEditingController nameController;
+  late TextEditingController bioController;
   File? bannerImage;
   File? profileImage;
+
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController(
+      text: ref.read(currentUserDetailsProvider).value?.name ?? '',
+    );
+    bioController = TextEditingController(
+      text: ref.read(currentUserDetailsProvider).value?.bio ?? '',
+    );
+  }
 
   @override
   void dispose() {
@@ -51,13 +63,32 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserDetailsProvider).value;
+    final isLoading = ref.watch(userProfileControllerProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Editar Perfil'),
         centerTitle: false,
-        actions: [TextButton(onPressed: () {}, child: const Text('Guardar'))],
+        actions: [
+          TextButton(
+            onPressed: () {
+              ref
+                  .read(userProfileControllerProvider.notifier)
+                  .updateUserProfile(
+                    userModel: user!.copyWith(
+                      bio: bioController.text,
+                      name: nameController.text,
+                    ),
+                    context: context,
+                    bannerImage: bannerImage,
+                    profileImage: profileImage,
+                  );
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
       ),
-      body: user == null
+      body: isLoading || user == null
           ? const Loader()
           : Column(
               children: [

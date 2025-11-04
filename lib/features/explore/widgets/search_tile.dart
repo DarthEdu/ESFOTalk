@@ -1,5 +1,4 @@
 import 'package:esfotalk_app/features/user_profile/view/user_profile_view.dart';
-import 'package:esfotalk_app/features/user_profile/widgets/user_profile.dart';
 import 'package:esfotalk_app/models/user_model.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/material.dart';

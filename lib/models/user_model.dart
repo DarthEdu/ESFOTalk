@@ -66,8 +66,8 @@ class UserModel {
     return UserModel(
       email: map['email'] ?? '',
       name: map['name'] ?? '',
-      followers: List<String>.from(map['followers']),
-      following: List<String>.from(map['following']),
+      followers: List<String>.from(map['followers'] ?? []),
+      following: List<String>.from(map['following'] ?? []),
       profilePic: map['profilePic'] ?? '',
       bannerPic: map['bannerPic'] ?? '',
       uid: map['\$id'] ?? '',

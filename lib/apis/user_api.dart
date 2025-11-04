@@ -9,7 +9,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fpdart/fpdart.dart';
 
 final userAPIProvider = Provider((ref) {
-  return UserAPI(databases: ref.watch(appwriteDatabaseProvider));
+  return UserAPI(
+    databases: ref.watch(appwriteDatabaseProvider),
+    realtime: ref.watch(appwriteRealtimeProvider),
+  );
 });
 
 abstract class IUserApi {
@@ -17,11 +20,17 @@ abstract class IUserApi {
   FutureEitherVoid saveUserData({required UserModel userModel});
   Future<Document> getUserData(String uid);
   Future<List<Document>> searchUserByName(String name);
+  FutureEitherVoid updateUserData({required UserModel userModel});
+  Stream<RealtimeMessage> getLatestUserProfileData();
 }
 
 class UserAPI implements IUserApi {
   final Databases _databases;
-  UserAPI({required Databases databases}) : _databases = databases;
+  final Realtime _realtime;
+
+  UserAPI({required Databases databases, required Realtime realtime})
+    : _realtime = realtime,
+      _databases = databases;
 
   @override
   FutureEitherVoid saveUserData({required UserModel userModel}) async {
@@ -58,5 +67,30 @@ class UserAPI implements IUserApi {
       queries: [Query.search('name', name)],
     );
     return documents.documents;
+  }
+
+  @override
+  FutureEitherVoid updateUserData({required UserModel userModel}) async {
+    try {
+      // ignore: deprecated_member_use
+      await _databases.updateDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.usersTable,
+        documentId: userModel.uid,
+        data: userModel.toMap(),
+      );
+      return right(null);
+    } on AppwriteException catch (e, st) {
+      return left(Failure(e.message ?? 'Some unexpected error occurred', st));
+    } catch (e, st) {
+      return left(Failure(e.toString(), st));
+    }
+  }
+  
+  @override
+  Stream<RealtimeMessage> getLatestUserProfileData() {
+    return _realtime.subscribe([
+      'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.usersTable}.documents',
+    ]).stream;
   }
 }
