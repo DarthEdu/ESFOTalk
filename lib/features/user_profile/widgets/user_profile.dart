@@ -5,6 +5,7 @@ import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/features/roar/controller/roar_controller.dart';
 import 'package:esfotalk_app/features/roar/widgets/roar_card.dart';
 import 'package:esfotalk_app/features/user_profile/controller/user_profile_controller.dart';
+import 'package:esfotalk_app/features/user_profile/view/edit_profile_view.dart';
 import 'package:esfotalk_app/features/user_profile/widgets/follow_count.dart';
 import 'package:esfotalk_app/models/roar_model.dart';
 import 'package:esfotalk_app/models/user_model.dart';
@@ -47,7 +48,11 @@ class UserProfile extends ConsumerWidget {
                         margin: const EdgeInsets.all(20),
 
                         child: OutlinedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            if (currentUser.uid == user.uid) {
+                              Navigator.push(context, EditProfileView.route());
+                            } 
+                          },
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),

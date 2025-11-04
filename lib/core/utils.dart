@@ -6,10 +6,8 @@ import 'package:image_picker/image_picker.dart';
 void showSnackBar(BuildContext context, String text) {
   // Verificar que el widget todavía esté montado
   if (!context.mounted) return;
-  
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(text)),
-  );
+
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 }
 
 String getNameFromEmail(String email) {
@@ -26,4 +24,13 @@ Future<List<File>> pickImages() async {
     }
   }
   return images;
+}
+
+Future<File?> pickImage() async {
+  final ImagePicker picker = ImagePicker();
+  final imageFile = await picker.pickImage(source: ImageSource.gallery);
+  if (imageFile != null) {
+    return File(imageFile.path);
+  }
+  return null;
 }
