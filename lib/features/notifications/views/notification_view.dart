@@ -3,6 +3,7 @@ import 'package:esfotalk_app/common/loading_page.dart';
 import 'package:esfotalk_app/constants/appwrite_constants.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/features/notifications/controller/notification_controller.dart';
+import 'package:esfotalk_app/features/notifications/widgets/notification_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esfotalk_app/models/notification_model.dart' as model;
@@ -30,15 +31,17 @@ class NotificationView extends ConsumerWidget {
                             )) {
                               final latestNotification =
                                   model.Notification.fromMap(data.payload);
-                                  if(latestNotification.uid == currentUser.uid){
-                                    notifications.insert(0, latestNotification);
-                                  }
+                              if (latestNotification.uid == currentUser.uid) {
+                                notifications.insert(0, latestNotification);
+                              }
                             }
                             return ListView.builder(
                               itemCount: notifications.length,
                               itemBuilder: (BuildContext context, int index) {
                                 final notification = notifications[index];
-                                return Text(notification.toString());
+                                return NotificationTile(
+                                  notification: notification,
+                                );
                               },
                             );
                           },
@@ -49,7 +52,9 @@ class NotificationView extends ConsumerWidget {
                               itemCount: notifications.length,
                               itemBuilder: (BuildContext context, int index) {
                                 final notification = notifications[index];
-                                return Text(notification.toString());
+                                return NotificationTile(
+                                  notification: notification,
+                                );
                               },
                             );
                           },

@@ -24,6 +24,7 @@ abstract class IRoarApi {
   Future<List<Document>> getRepliesToRoar(String roarId);
   Future<Document> getRoarById(String id);
   Future<List<Document>> getUserRoars(String uid);
+  Future<List<Document>> getRoarsByHashtag(String hashtag);
 }
 
 class RoarAPI implements IRoarApi {
@@ -128,6 +129,16 @@ class RoarAPI implements IRoarApi {
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.roarTable,
       queries: [Query.equal('uid', uid)],
+    );
+    return documents.documents;
+  }
+  
+  @override
+  Future<List<Document>> getRoarsByHashtag(String hashtag) async{
+    final documents = await _databases.listDocuments(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.roarTable,
+      queries: [Query.search('hashtags', hashtag)],
     );
     return documents.documents;
   }

@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:esfotalk_app/apis/roar_api.dart';
 import 'package:esfotalk_app/apis/storage_api.dart';
 import 'package:esfotalk_app/apis/user_api.dart';
+import 'package:esfotalk_app/core/enums/notification_type_enum.dart';
 import 'package:esfotalk_app/core/utils.dart';
+import 'package:esfotalk_app/features/notifications/controller/notification_controller.dart';
 import 'package:esfotalk_app/models/roar_model.dart';
 import 'package:esfotalk_app/models/user_model.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +19,7 @@ final userProfileControllerProvider =
           storageAPIProvider,
         ), // Esta línea faltaba o era incorrecta
         userAPI: ref.watch(userAPIProvider),
+        notificationController: ref.watch(notificationControllerProvider.notifier),
       );
     });
 
@@ -39,13 +42,17 @@ class UserProfileController extends StateNotifier<bool> {
   final RoarAPI _roarAPI;
   final StorageAPI _storageAPI;
   final UserAPI _userAPI;
+  final NotificationController _notificationController;
+
   UserProfileController({
     required RoarAPI roarAPI,
     required StorageAPI storageAPI,
     required UserAPI userAPI,
+    required NotificationController notificationController,
   }) : _roarAPI = roarAPI,
        _storageAPI = storageAPI,
        _userAPI = userAPI,
+       _notificationController = notificationController,
        super(false);
 
   Future<List<Roar>> getUserRoars(String uid) async {
@@ -123,7 +130,14 @@ class UserProfileController extends StateNotifier<bool> {
     final res = await _userAPI.followUser(user);
     res.fold((l) => showSnackBar(context, l.message), (r) async{
       final res2 = await _userAPI.addToFollowing(currentUser);
-      res2.fold((l) => showSnackBar(context, l.message), (r) => null);
+      res2.fold((l) => showSnackBar(context, l.message), (r) {
+         _notificationController.createNotification(
+          text: '¡${currentUser.name} ha empezado a seguirte!',
+          postId: '',
+          uid: user.uid,
+          notificationType: NotificationType.follow,
+        );
+      });
     });
     }
 }

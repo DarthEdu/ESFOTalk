@@ -119,6 +119,7 @@ class RoarReplyScreen extends ConsumerWidget {
                 text: value,
                 context: context,
                 repliedTo: roar.id,
+                repliedToUserId: roar.uid,
               );
         },
         decoration: InputDecoration(hintText: 'Ruge tu respuesta...'),

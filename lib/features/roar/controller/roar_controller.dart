@@ -43,6 +43,11 @@ final getRoarByIdProvider = FutureProvider.family((ref, String id) {
   return roarController.getRoarById(id);
 });
 
+final getRoarsByHashtagProvider = FutureProvider.family((ref, String hashtag) {
+  final roarController = ref.watch(roarControllerProvider.notifier);
+  return roarController.getRoarsByHashtag(hashtag);
+});
+
 class RoarController extends StateNotifier<bool> {
   final RoarAPI _roarAPI;
   final StorageAPI _storageAPI;
@@ -81,7 +86,7 @@ class RoarController extends StateNotifier<bool> {
     final res = await _roarAPI.likeRoar(roar);
     res.fold((l) => null, (r) {
       _notificationController.createNotification(
-        text: '${user.name} le gusta tu rugido ${roar.text}',
+        text: '¡${user.name} le gusta tu rugido!',
         postId: roar.id,
         uid: roar.uid,
         notificationType: NotificationType.like,
@@ -108,10 +113,15 @@ class RoarController extends StateNotifier<bool> {
         roaredAt: DateTime.now(),
       );
       final res2 = await _roarAPI.shareRoar(roar);
-      res2.fold(
-        (l) => showSnackBar(context, l.message),
-        (r) => showSnackBar(context, 'Rugido re-compartido con éxito'),
-      );
+      res2.fold((l) => showSnackBar(context, l.message), (r) {
+        _notificationController.createNotification(
+          text: '¡${currentUser.name} compartió tu rugido!',
+          postId: roar.id,
+          uid: roar.uid,
+          notificationType: NotificationType.reroar,
+        );
+        showSnackBar(context, 'Rugido compartido con éxito');
+      });
     });
   }
 
@@ -121,6 +131,7 @@ class RoarController extends StateNotifier<bool> {
     required String text,
     required BuildContext context,
     required String repliedTo,
+    required String repliedToUserId,
   }) {
     if (text.isEmpty) {
       showSnackBar(context, 'Por favor ingresa un texto para el rugido.');
@@ -134,9 +145,15 @@ class RoarController extends StateNotifier<bool> {
         text: text,
         context: context,
         repliedTo: repliedTo,
+        repliedToUserId: repliedToUserId,
       );
     } else {
-      _shareTextRoar(text: text, context: context, repliedTo: repliedTo);
+      _shareTextRoar(
+        text: text,
+        context: context,
+        repliedTo: repliedTo,
+        repliedToUserId: repliedToUserId,
+      );
     }
   }
 
@@ -145,12 +162,19 @@ class RoarController extends StateNotifier<bool> {
     return documents.map((roar) => Roar.fromMap(roar.data)).toList();
   }
 
+   Future<List<Roar>> getRoarsByHashtag(String hashtag) async {
+    final documents = await _roarAPI.getRoarsByHashtag(hashtag);
+    return documents.map((roar) => Roar.fromMap(roar.data)).toList();
+  }
+
+
   // Lógica para crear el rugido con el texto y las imágenes subidas
   void _shareImageRoar({
     required List<io.File> images,
     required String text,
     required BuildContext context,
     required String repliedTo,
+    required String repliedToUserId,
   }) async {
     state = true;
     final hashtags = _getHashtagsFromText(text);
@@ -161,7 +185,6 @@ class RoarController extends StateNotifier<bool> {
     imageLinksResult.fold(
       (l) {
         showSnackBar(context, l.message);
-        state = false;
       },
       (imageLinks) async {
         Roar roar = Roar(
@@ -181,18 +204,26 @@ class RoarController extends StateNotifier<bool> {
         );
         final res = await _roarAPI.shareRoar(roar);
         state = false;
-        res.fold(
-          (l) => showSnackBar(context, l.message),
-          (r) => Navigator.pop(context),
-        );
+        res.fold((l) => showSnackBar(context, l.message), (r) {
+          if (repliedTo.isNotEmpty) {
+            _notificationController.createNotification(
+              text: '¡${user.name} ha compartido tu rugido!',
+              postId: r.$id,
+              uid: repliedToUserId,
+              notificationType: NotificationType.reply,
+            );
+          }
+        });
       },
     );
+    state = false;
   }
 
   void _shareTextRoar({
     required String text,
     required BuildContext context,
     required String repliedTo,
+    required String repliedToUserId,
   }) async {
     state = true;
     final hashtags = _getHashtagsFromText(text);
@@ -214,10 +245,17 @@ class RoarController extends StateNotifier<bool> {
       repliedTo: repliedTo,
     );
     final res = await _roarAPI.shareRoar(roar);
-    state = false;
     res.fold((l) => showSnackBar(context, l.message), (r) {
-      Navigator.pop(context);
+      if (repliedTo.isNotEmpty) {
+        _notificationController.createNotification(
+          text: '¡${user.name} ha compartido tu rugido!',
+          postId: r.$id,
+          uid: repliedToUserId,
+          notificationType: NotificationType.reply,
+        );
+      }
     });
+    state = false;
   }
 
   String _getLinkFromText(String text) {

@@ -38,6 +38,7 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
           images: images,
           context: context,
           repliedTo: '',
+          repliedToUserId: '',
         );
   }
 

@@ -1,4 +1,6 @@
+import 'package:esfotalk_app/features/roar/views/hashtag_view.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class HashtagText extends StatelessWidget {
@@ -20,33 +22,25 @@ class HashtagText extends StatelessWidget {
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.push(context, HashtagView.route(element));
+              },
           ),
         );
-      } else if(element.startsWith('www.') || element.startsWith('https://')) {
+      } else if (element.startsWith('www.') || element.startsWith('https://')) {
         textspans.add(
           TextSpan(
             text: '$element ',
-            style: const TextStyle(
-              color: Pallete.purpleColor,
-              fontSize: 18,
-            ),
+            style: const TextStyle(color: Pallete.purpleColor, fontSize: 18),
           ),
         );
       } else {
         textspans.add(
-          TextSpan(
-            text: '$element ',
-            style: const TextStyle(
-              fontSize: 18,
-            ),
-          ),
+          TextSpan(text: '$element ', style: const TextStyle(fontSize: 18)),
         );
       }
     });
-    return RichText(
-      text: TextSpan(
-        children: textspans,
-      ),
-    );
+    return RichText(text: TextSpan(children: textspans));
   }
 }
