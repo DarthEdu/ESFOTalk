@@ -34,7 +34,10 @@ class UserProfile extends ConsumerWidget {
                       Positioned.fill(
                         child: user.bannerPic.isEmpty
                             ? Container(color: Pallete.vinoColor)
-                            : Image.network(user.bannerPic, fit: BoxFit.fitWidth),
+                            : Image.network(
+                                user.bannerPic,
+                                fit: BoxFit.fitWidth,
+                              ),
                       ),
                       Positioned(
                         bottom: 0,
@@ -46,12 +49,20 @@ class UserProfile extends ConsumerWidget {
                       Container(
                         alignment: Alignment.bottomRight,
                         margin: const EdgeInsets.all(20),
-
                         child: OutlinedButton(
                           onPressed: () {
                             if (currentUser.uid == user.uid) {
+                              // editar perfil
                               Navigator.push(context, EditProfileView.route());
-                            } 
+                            } else {
+                              ref
+                                  .read(userProfileControllerProvider.notifier)
+                                  .followUser(
+                                    user: user,
+                                    context: context,
+                                    currentUser: currentUser,
+                                  );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
@@ -66,7 +77,9 @@ class UserProfile extends ConsumerWidget {
                           child: Text(
                             currentUser.uid == user.uid
                                 ? 'Editar Perfil'
-                                : 'Seguir',
+                                : currentUser.following.contains(user.uid)
+                                    ? 'Dejar de seguir'
+                                    : 'Seguir',
                             style: const TextStyle(color: Pallete.whiteColor),
                           ),
                         ),
