@@ -1,4 +1,4 @@
-import 'dart:io' as io;
+import 'dart:io';
 import 'package:appwrite/appwrite.dart';
 import 'package:esfotalk_app/apis/roar_api.dart';
 import 'package:esfotalk_app/apis/storage_api.dart';
@@ -127,7 +127,7 @@ class RoarController extends StateNotifier<bool> {
 
   void shareRoar({
     // Lógica para compartir un rugido
-    required List<io.File> images,
+    required List<File> images,
     required String text,
     required BuildContext context,
     required String repliedTo,
@@ -170,7 +170,7 @@ class RoarController extends StateNotifier<bool> {
 
   // Lógica para crear el rugido con el texto y las imágenes subidas
   void _shareImageRoar({
-    required List<io.File> images,
+    required List<File> images,
     required String text,
     required BuildContext context,
     required String repliedTo,
@@ -180,13 +180,8 @@ class RoarController extends StateNotifier<bool> {
     final hashtags = _getHashtagsFromText(text);
     String link = _getLinkFromText(text);
     final user = _ref.read(currentUserDetailsProvider).value!;
-    final imageLinksResult = await _storageAPI.uploadImages(images);
+    final imageLinks = await _storageAPI.uploadImage(images);
 
-    imageLinksResult.fold(
-      (l) {
-        showSnackBar(context, l.message);
-      },
-      (imageLinks) async {
         Roar roar = Roar(
           text: text,
           hashtags: hashtags,
@@ -203,19 +198,17 @@ class RoarController extends StateNotifier<bool> {
           repliedTo: repliedTo,
         );
         final res = await _roarAPI.shareRoar(roar);
-        state = false;
+
         res.fold((l) => showSnackBar(context, l.message), (r) {
           if (repliedTo.isNotEmpty) {
             _notificationController.createNotification(
-              text: '¡${user.name} ha compartido tu rugido!',
+              text: '¡${user.name} ha contestado tu rugido!',
               postId: r.$id,
               uid: repliedToUserId,
               notificationType: NotificationType.reply,
             );
           }
         });
-      },
-    );
     state = false;
   }
 
@@ -248,7 +241,7 @@ class RoarController extends StateNotifier<bool> {
     res.fold((l) => showSnackBar(context, l.message), (r) {
       if (repliedTo.isNotEmpty) {
         _notificationController.createNotification(
-          text: '¡${user.name} ha compartido tu rugido!',
+          text: '¡${user.name} ha contestado tu rugido!',
           postId: r.$id,
           uid: repliedToUserId,
           notificationType: NotificationType.reply,

@@ -24,7 +24,7 @@ abstract class IUserApi {
   Stream<RealtimeMessage> getLatestUserProfileData();
   FutureEitherVoid followUser(UserModel user);
   FutureEitherVoid addToFollowing(UserModel user);
-  
+
 }
 
 class UserAPI implements IUserApi {
@@ -55,6 +55,7 @@ class UserAPI implements IUserApi {
 
   @override
   Future<Document> getUserData(String uid) {
+    // ignore: deprecated_member_use
     return _databases.getDocument(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.usersTable,
@@ -64,6 +65,7 @@ class UserAPI implements IUserApi {
 
   @override
   Future<List<Document>> searchUserByName(String name) async {
+    // ignore: deprecated_member_use
     final documents = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.usersTable,

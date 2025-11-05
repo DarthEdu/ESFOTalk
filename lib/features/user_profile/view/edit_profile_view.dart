@@ -80,8 +80,8 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                       name: nameController.text,
                     ),
                     context: context,
-                    bannerImage: bannerImage,
-                    profileImage: profileImage,
+                    bannerFile: bannerImage,
+                    profileFile: profileImage,
                   );
             },
             child: const Text('Guardar'),

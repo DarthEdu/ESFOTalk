@@ -67,6 +67,7 @@ class RoarCard extends ConsumerWidget {
                                       children: [
                                         SvgPicture.asset(
                                           AssetsConstants.retweetIcon,
+                                          // ignore: deprecated_member_use
                                           color: Pallete.greyColor,
                                           height: 20,
                                         ),
@@ -220,11 +221,13 @@ class RoarCard extends ConsumerWidget {
                                                 ? SvgPicture.asset(
                                                     AssetsConstants
                                                         .likeFilledIcon,
+                                                    // ignore: deprecated_member_use
                                                     color: Pallete.redColor,
                                                   )
                                                 : SvgPicture.asset(
                                                     AssetsConstants
                                                         .likeOutlinedIcon,
+                                                    // ignore: deprecated_member_use
                                                     color: Pallete.greyColor,
                                                   );
                                           },

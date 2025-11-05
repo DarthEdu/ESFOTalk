@@ -55,6 +55,7 @@ class RoarAPI implements IRoarApi {
 
   @override
   Future<List<Document>> getRoars() async {
+    // ignore: deprecated_member_use
     final documents = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.roarTable,
@@ -73,6 +74,7 @@ class RoarAPI implements IRoarApi {
   @override
   FutureEither<Document> likeRoar(Roar roar) async {
     try {
+      // ignore: deprecated_member_use
       final document = await _databases.updateDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.roarTable,
@@ -90,6 +92,7 @@ class RoarAPI implements IRoarApi {
   @override
   FutureEither<Document> updateReshareCount(Roar roar) async {
     try {
+      // ignore: deprecated_member_use
       final document = await _databases.updateDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.roarTable,
@@ -106,6 +109,7 @@ class RoarAPI implements IRoarApi {
 
   @override
   Future<List<Document>> getRepliesToRoar(String roarId) async {
+    // ignore: deprecated_member_use
     final document = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.roarTable,
@@ -116,6 +120,7 @@ class RoarAPI implements IRoarApi {
 
   @override
   Future<Document> getRoarById(String id) async {
+    // ignore: deprecated_member_use
     return _databases.getDocument(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.roarTable,
@@ -125,6 +130,7 @@ class RoarAPI implements IRoarApi {
   
   @override
   Future<List<Document>> getUserRoars(String uid) async{
+    // ignore: deprecated_member_use
     final documents = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.roarTable,
@@ -135,6 +141,7 @@ class RoarAPI implements IRoarApi {
   
   @override
   Future<List<Document>> getRoarsByHashtag(String hashtag) async{
+    // ignore: deprecated_member_use
     final documents = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.roarTable,

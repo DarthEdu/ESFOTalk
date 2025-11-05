@@ -48,6 +48,7 @@ class _CarouselImageState extends State<CarouselImage> {
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
+                    // ignore: deprecated_member_use
                     color: Colors.white.withOpacity(_current == e.key ? 0.9 : 0.4),
                   ),
                 );

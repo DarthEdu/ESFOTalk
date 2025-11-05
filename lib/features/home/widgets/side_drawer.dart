@@ -40,8 +40,8 @@ class SideDrawer extends ConsumerWidget {
                     .updateUserProfile(
                       userModel: currentUser.copyWith(isDragonred: true),
                       context: context,
-                      bannerImage: null,
-                      profileImage: null,
+                      bannerFile: null,
+                      profileFile: null,
                     );
               },
             ),

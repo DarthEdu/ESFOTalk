@@ -20,6 +20,7 @@ class RoarIconButton extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: [
+          // ignore: deprecated_member_use
           SvgPicture.asset(pathName, color: Pallete.greyColor),
           Container(
             margin: const EdgeInsets.only(left: 2),

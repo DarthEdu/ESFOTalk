@@ -17,12 +17,14 @@ class NotificationTile extends StatelessWidget {
           : notification.notificationType == NotificationType.like
           ? SvgPicture.asset(
               AssetsConstants.likeFilledIcon,
+              // ignore: deprecated_member_use
               color: Pallete.redColor,
               height: 20,
             )
           : notification.notificationType == NotificationType.reroar
           ? SvgPicture.asset(
               AssetsConstants.retweetIcon,
+              // ignore: deprecated_member_use
               color: Pallete.whiteColor,
               height: 20,
             )

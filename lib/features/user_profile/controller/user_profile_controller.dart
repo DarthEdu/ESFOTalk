@@ -19,7 +19,9 @@ final userProfileControllerProvider =
           storageAPIProvider,
         ), // Esta línea faltaba o era incorrecta
         userAPI: ref.watch(userAPIProvider),
-        notificationController: ref.watch(notificationControllerProvider.notifier),
+        notificationController: ref.watch(
+          notificationControllerProvider.notifier,
+        ),
       );
     });
 
@@ -63,44 +65,18 @@ class UserProfileController extends StateNotifier<bool> {
   void updateUserProfile({
     required UserModel userModel,
     required BuildContext context,
-    required File? bannerImage,
-    required File? profileImage,
+    required File? bannerFile,
+    required File? profileFile,
   }) async {
     state = true;
-    if (bannerImage != null) {
-      final res = await _storageAPI.uploadImages([bannerImage]);
-      final foldResult = res.fold(
-        (l) {
-          showSnackBar(context, l.message);
-          return false; // Indica fallo
-        },
-        (r) {
-          userModel = userModel.copyWith(bannerPic: r[0]);
-          return true; // Indica éxito
-        },
-      );
-      if (!foldResult) {
-        state = false;
-        return;
-      }
+    if (bannerFile != null) {
+      final bannerUrl = await _storageAPI.uploadImage([bannerFile]);
+      userModel = userModel.copyWith(bannerPic: bannerUrl[0]);
     }
 
-    if (profileImage != null) {
-      final res = await _storageAPI.uploadImages([profileImage]);
-      final foldResult = res.fold(
-        (l) {
-          showSnackBar(context, l.message);
-          return false; // Indica fallo
-        },
-        (r) {
-          userModel = userModel.copyWith(profilePic: r[0]);
-          return true; // Indica éxito
-        },
-      );
-      if (!foldResult) {
-        state = false;
-        return;
-      }
+    if (profileFile != null) {
+      final profileUrl = await _storageAPI.uploadImage([profileFile]);
+      userModel = userModel.copyWith(profilePic: profileUrl[0]);
     }
 
     final res = await _userAPI.updateUserData(userModel: userModel);
@@ -128,10 +104,10 @@ class UserProfileController extends StateNotifier<bool> {
     currentUser = currentUser.copyWith(following: currentUser.following);
 
     final res = await _userAPI.followUser(user);
-    res.fold((l) => showSnackBar(context, l.message), (r) async{
+    res.fold((l) => showSnackBar(context, l.message), (r) async {
       final res2 = await _userAPI.addToFollowing(currentUser);
       res2.fold((l) => showSnackBar(context, l.message), (r) {
-         _notificationController.createNotification(
+        _notificationController.createNotification(
           text: '¡${currentUser.name} ha empezado a seguirte!',
           postId: '',
           uid: user.uid,
@@ -139,6 +115,5 @@ class UserProfileController extends StateNotifier<bool> {
         );
       });
     });
-    }
+  }
 }
-

@@ -8,6 +8,7 @@ import 'package:esfotalk_app/models/notification_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fpdart/fpdart.dart';
 
+// ignore: non_constant_identifier_names
 final NotificationAPIProvider = Provider((ref) {
   return NotificationAPI(
     databases: ref.watch(appwriteDatabaseProvider),
@@ -49,6 +50,7 @@ class NotificationAPI implements INotificactionAPI {
 
   @override
   Future<List<Document>> getNotification(String uid) async {
+    // ignore: deprecated_member_use
     final documents = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.notificationTable,
