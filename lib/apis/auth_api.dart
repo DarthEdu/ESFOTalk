@@ -7,7 +7,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:appwrite/models.dart';
 
 final authAPIProvider = Provider((ref) {
-  final account = ref.watch(appwriteAcccountProvider);
+  final account = ref.watch(appwriteAccountProvider);
   return AuthAPI(account: account);
 });
 

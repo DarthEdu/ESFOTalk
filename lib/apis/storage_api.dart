@@ -22,8 +22,12 @@ class StorageAPI {
       final uploadedImage = await _storage.createFile(
         bucketId: AppwriteConstants.imagesBucket,
         fileId: ID.unique(),
-        // ignore: deprecated_member_use
-        file: InputFile(path: file.path),
+        // CAMBIO: Se envían los bytes del archivo en lugar de solo la ruta
+        // para evitar el error 'storage_file_empty'. Esto es más robusto.
+        file: InputFile.fromBytes(
+          bytes: await file.readAsBytes(),
+          filename: file.path.split('/').last, // Obtenemos el nombre del archivo de la ruta
+        ),
       );
       imageLinks.add(
         AppwriteConstants.imageUrl(uploadedImage.$id),

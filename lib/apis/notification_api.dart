@@ -16,13 +16,13 @@ final NotificationAPIProvider = Provider((ref) {
   );
 });
 
-abstract class INotificactionAPI {
+abstract class INotificationAPI {
   FutureEitherVoid createNotification(Notification notification);
   Future<List<Document>> getNotification(String uid);
   Stream<RealtimeMessage> getLatestNotification();
 }
 
-class NotificationAPI implements INotificactionAPI {
+class NotificationAPI implements INotificationAPI {
   final Databases _databases;
   final Realtime _realtime;
 
