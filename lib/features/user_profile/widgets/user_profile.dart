@@ -1,14 +1,11 @@
 import 'package:esfotalk_app/common/error_page.dart';
 import 'package:esfotalk_app/common/loading_page.dart';
-import 'package:esfotalk_app/constants/appwrite_constants.dart';
 import 'package:esfotalk_app/constants/assets_constant.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
-import 'package:esfotalk_app/features/roar/controller/roar_controller.dart';
 import 'package:esfotalk_app/features/roar/widgets/roar_card.dart';
 import 'package:esfotalk_app/features/user_profile/controller/user_profile_controller.dart';
 import 'package:esfotalk_app/features/user_profile/view/edit_profile_view.dart';
 import 'package:esfotalk_app/features/user_profile/widgets/follow_count.dart';
-import 'package:esfotalk_app/models/roar_model.dart';
 import 'package:esfotalk_app/models/user_model.dart';
 import 'package:esfotalk_app/theme/theme.dart';
 import 'package:flutter/material.dart';
@@ -80,8 +77,8 @@ class UserProfile extends ConsumerWidget {
                             currentUser.uid == user.uid
                                 ? 'Editar Perfil'
                                 : currentUser.following.contains(user.uid)
-                                ? 'Dejar de seguir'
-                                : 'Seguir',
+                                    ? 'Dejar de seguir'
+                                    : 'Seguir',
                             style: const TextStyle(color: Pallete.whiteColor),
                           ),
                         ),
@@ -123,7 +120,6 @@ class UserProfile extends ConsumerWidget {
                         user.bio,
                         style: const TextStyle(
                           fontSize: 17,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -147,87 +143,15 @@ class UserProfile extends ConsumerWidget {
                 ),
               ];
             },
-            body: ref
-                .watch(getUserRoarsProvider(user.uid))
-                .when(
+            body: ref.watch(getUserRoarsProvider(user.uid)).when(
                   data: (roars) {
-                    final mutableRoars = List.from(roars);
-                    return ref
-                        .watch(getLatestRoarProvider)
-                        .when(
-                          data: (data) {
-                            final latestRoar = Roar.fromMap(data.payload);
-
-                            bool isRoarAlreadyPresent = false;
-
-                            for (final roarModel in roars) {
-                              if (roarModel.id == latestRoar.id) {
-                                isRoarAlreadyPresent = true;
-                                break;
-                              }
-                            }
-
-                            if (!isRoarAlreadyPresent) {
-                              if (data.events.contains(
-                                'databases.*.collections.${AppwriteConstants.roarTable}.documents.*.create',
-                              )) {
-                                mutableRoars.insert(
-                                  0,
-                                  Roar.fromMap(data.payload),
-                                );
-                              } else if (data.events.contains(
-                                'databases.*.collections.${AppwriteConstants.roarTable}.documents.*.update',
-                              )) {
-                                final startingPoint = data.events[0]
-                                    .lastIndexOf('documents.');
-                                final endingPoint = data.events[0].lastIndexOf(
-                                  '.update',
-                                );
-                                final roarId = data.events[0]
-                                    .substring(startingPoint + 10, endingPoint)
-                                    .toString();
-
-                                final matchingRoars = mutableRoars.where(
-                                  (element) => element.id == roarId,
-                                );
-
-                                if (matchingRoars.isNotEmpty) {
-                                  final roar = matchingRoars.first;
-                                  final roarIndex = mutableRoars.indexOf(roar);
-                                  mutableRoars.removeWhere(
-                                    (element) => element.id == roarId,
-                                  );
-                                  final updatedRoar = Roar.fromMap(
-                                    data.payload,
-                                  );
-                                  mutableRoars.insert(roarIndex, updatedRoar);
-                                }
-                              }
-                            }
-                            return Expanded(
-                              child: ListView.builder(
-                                itemCount: mutableRoars.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  final roar = mutableRoars[index];
-                                  return RoarCard(roar: roar);
-                                },
-                              ),
-                            );
-                          },
-                          error: (error, stackTrace) =>
-                              ErrorText(error: error.toString()),
-                          loading: () {
-                            return Expanded(
-                              child: ListView.builder(
-                                itemCount: roars.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  final roar = roars[index];
-                                  return RoarCard(roar: roar);
-                                },
-                              ),
-                            );
-                          },
-                        );
+                    return ListView.builder(
+                      itemCount: roars.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final roar = roars[index];
+                        return RoarCard(roar: roar);
+                      },
+                    );
                   },
                   error: (error, stackTrace) =>
                       ErrorText(error: error.toString()),

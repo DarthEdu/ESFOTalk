@@ -106,7 +106,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                   text: TextSpan(
                     text: "¿Olvidaste tu contraseña? ",
                     style: const TextStyle(
-                        fontSize: 16, color: Colors.black),
+                        fontSize: 16, color: Pallete.whiteColor),
                     children: [
                       TextSpan(
                         text: 'Recupérala aquí',
@@ -129,7 +129,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                   text: TextSpan(
                     text: "¿No tienes una cuenta?",
                     style: const TextStyle(
-                        fontSize: 16, color: Colors.black),
+                        fontSize: 16, color: Pallete.whiteColor),
                     children: [
                       TextSpan(
                         text: ' Regístrate',

@@ -104,7 +104,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                   text: TextSpan(
                     text: "¿Ya tienes una cuenta?",
                     style: const TextStyle(
-                        fontSize: 16, color: Colors.black),
+                        fontSize: 16, color: Pallete.whiteColor),
                     children: [
                       TextSpan(
                         text: ' Inicia Sesión',

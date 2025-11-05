@@ -15,7 +15,8 @@ class ExploreView extends ConsumerStatefulWidget {
 
 class _ExploreViewState extends ConsumerState<ExploreView> {
   final searchController = TextEditingController();
-  bool isShowUsers = false;
+  // Se elimina 'isShowUsers' y se reemplaza por un término de búsqueda.
+  String _searchTerm = '';
 
   @override
   void dispose() {
@@ -35,9 +36,9 @@ class _ExploreViewState extends ConsumerState<ExploreView> {
           height: 50,
           child: TextField(
             controller: searchController,
-            onSubmitted: (value){
+            onSubmitted: (value) {
               setState(() {
-                isShowUsers = true;
+                _searchTerm = value;
               });
             },
             decoration: InputDecoration(
@@ -51,21 +52,28 @@ class _ExploreViewState extends ConsumerState<ExploreView> {
           ),
         ),
       ),
-      body: isShowUsers? ref
-          .watch(searchUserProvider(searchController.text))
-          .when(
-            data: (users) {
-              return ListView.builder(
-                itemCount: users.length,
-                itemBuilder: (context, index) {
-                  final user = users[index];
-                  return SearchTile(userModel: user);
+      body: _searchTerm.isEmpty
+          ? const Center(
+              child: Text('Busca usuarios por su nombre de perfil.'),
+            )
+          : ref.watch(searchUserProvider(_searchTerm)).when(
+                data: (users) {
+                  if (users.isEmpty) {
+                    return const Center(
+                      child: Text('No se encontraron usuarios.'),
+                    );
+                  }
+                  return ListView.builder(
+                    itemCount: users.length,
+                    itemBuilder: (context, index) {
+                      final user = users[index];
+                      return SearchTile(userModel: user);
+                    },
+                  );
                 },
-              );
-            },
-            error: (error, stackTrace) => ErrorText(error: error.toString()),
-            loading: () => const Loader(),
-          ): const SizedBox(),
+                error: (error, stackTrace) => ErrorText(error: error.toString()),
+                loading: () => const Loader(),
+              ),
     );
   }
 }

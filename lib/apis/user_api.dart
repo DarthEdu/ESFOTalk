@@ -16,15 +16,13 @@ final userAPIProvider = Provider((ref) {
 });
 
 abstract class IUserApi {
-  /// Obtiene la cuenta del usuario actual
   FutureEitherVoid saveUserData({required UserModel userModel});
   Future<Document> getUserData(String uid);
   Future<List<Document>> searchUserByName(String name);
   FutureEitherVoid updateUserData({required UserModel userModel});
-  Stream<RealtimeMessage> getLatestUserProfileData();
+  Stream<RealtimeMessage> getUserDataStream(String uid); // Cambio aquí
   FutureEitherVoid followUser(UserModel user);
   FutureEitherVoid addToFollowing(UserModel user);
-
 }
 
 class UserAPI implements IUserApi {
@@ -38,7 +36,6 @@ class UserAPI implements IUserApi {
   @override
   FutureEitherVoid saveUserData({required UserModel userModel}) async {
     try {
-      // ignore: deprecated_member_use
       await _databases.createDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.usersTable,
@@ -55,7 +52,6 @@ class UserAPI implements IUserApi {
 
   @override
   Future<Document> getUserData(String uid) {
-    // ignore: deprecated_member_use
     return _databases.getDocument(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.usersTable,
@@ -65,7 +61,6 @@ class UserAPI implements IUserApi {
 
   @override
   Future<List<Document>> searchUserByName(String name) async {
-    // ignore: deprecated_member_use
     final documents = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.usersTable,
@@ -77,7 +72,6 @@ class UserAPI implements IUserApi {
   @override
   FutureEitherVoid updateUserData({required UserModel userModel}) async {
     try {
-      // ignore: deprecated_member_use
       await _databases.updateDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.usersTable,
@@ -93,16 +87,15 @@ class UserAPI implements IUserApi {
   }
 
   @override
-  Stream<RealtimeMessage> getLatestUserProfileData() {
+  Stream<RealtimeMessage> getUserDataStream(String uid) { // Cambio aquí
     return _realtime.subscribe([
-      'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.usersTable}.documents',
+      'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.usersTable}.documents.$uid',
     ]).stream;
   }
   
   @override
-  FutureEitherVoid followUser(UserModel user) async{
+  FutureEitherVoid followUser(UserModel user) async {
     try {
-      // ignore: deprecated_member_use
       await _databases.updateDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.usersTable,
@@ -120,9 +113,8 @@ class UserAPI implements IUserApi {
   }
   
   @override
-  FutureEitherVoid addToFollowing(UserModel user) async{
+  FutureEitherVoid addToFollowing(UserModel user) async {
     try {
-      // ignore: deprecated_member_use
       await _databases.updateDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.usersTable,

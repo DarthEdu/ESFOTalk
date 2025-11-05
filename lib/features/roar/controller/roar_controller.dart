@@ -23,14 +23,38 @@ final roarControllerProvider = StateNotifierProvider<RoarController, bool>((
   );
 });
 
-final getRoarsProvider = FutureProvider((ref) {
+// Proveedor de stream para la lista de todos los roars
+final getRoarsProvider = StreamProvider((ref) async* {
   final roarController = ref.watch(roarControllerProvider.notifier);
-  return roarController.getRoars();
+  // 1. Carga inicial de roars
+  final initialRoars = await roarController.getRoars();
+  yield initialRoars;
+
+  // 2. Escucha los cambios en tiempo real y vuelve a cargar la lista
+  final stream = ref.watch(roarAPIProvider).getLatestRoars();
+  await for (final event in stream) {
+    final updatedRoars = await roarController.getRoars();
+    yield updatedRoars;
+  }
 });
 
-final getRepliesToRoarsProvider = FutureProvider.family((ref, String roarId) {
+// Proveedor de stream para las respuestas a un roar específico
+final getRepliesToRoarsProvider = StreamProvider.family<List<Roar>, String>((ref, roarId) async* {
   final roarController = ref.watch(roarControllerProvider.notifier);
-  return roarController.getRepliesToRoar(roarId);
+  // 1. Carga inicial de respuestas
+  final initialReplies = await roarController.getRepliesToRoar(roarId);
+  yield initialReplies;
+
+  // 2. Escucha los cambios y vuelve a cargar si son relevantes
+  final stream = ref.watch(roarAPIProvider).getLatestRoars();
+  await for (final event in stream) {
+    final payload = Roar.fromMap(event.payload);
+    // Vuelve a cargar solo si el cambio es una respuesta a este roar
+    if (payload.repliedTo == roarId) {
+      final updatedReplies = await roarController.getRepliesToRoar(roarId);
+      yield updatedReplies;
+    }
+  }
 });
 
 final getLatestRoarProvider = StreamProvider((ref) {
@@ -126,7 +150,6 @@ class RoarController extends StateNotifier<bool> {
   }
 
   void shareRoar({
-    // Lógica para compartir un rugido
     required List<File> images,
     required String text,
     required BuildContext context,
@@ -139,7 +162,6 @@ class RoarController extends StateNotifier<bool> {
     }
 
     if (images.isNotEmpty) {
-      // Lógica para subir imágenes
       _shareImageRoar(
         images: images,
         text: text,
@@ -167,8 +189,6 @@ class RoarController extends StateNotifier<bool> {
     return documents.map((roar) => Roar.fromMap(roar.data)).toList();
   }
 
-
-  // Lógica para crear el rugido con el texto y las imágenes subidas
   void _shareImageRoar({
     required List<File> images,
     required String text,
@@ -252,7 +272,6 @@ class RoarController extends StateNotifier<bool> {
   }
 
   String _getLinkFromText(String text) {
-    // Lógica para extraer enlaces del texto
     String link = '';
     List<String> wordInSentence = text.split(' ');
     for (String word in wordInSentence) {
@@ -264,7 +283,6 @@ class RoarController extends StateNotifier<bool> {
   }
 
   List<String> _getHashtagsFromText(String text) {
-    // Lógica para extraer hashtags del texto
     List<String> hashtags = [];
     List<String> wordInSentence = text.split(' ');
     for (String word in wordInSentence) {

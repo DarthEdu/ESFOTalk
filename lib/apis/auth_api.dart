@@ -8,7 +8,8 @@ import 'package:appwrite/models.dart';
 
 final authAPIProvider = Provider((ref) {
   final account = ref.watch(appwriteAccountProvider);
-  return AuthAPI(account: account);
+  final realtime = ref.watch(appwriteRealtimeProvider);
+  return AuthAPI(account: account, realtime: realtime);
 });
 
 abstract class IAuthApi {
@@ -29,12 +30,17 @@ abstract class IAuthApi {
   /// Enviar email de recuperación de contraseña
   FutureEitherVoid sendPasswordReset({required String email});
 
+  Stream<RealtimeMessage> getAccountEvents();
+
   FutureEitherVoid logout();
 }
 
 class AuthAPI implements IAuthApi {
   final Account _account;
-  AuthAPI({required Account account}) : _account = account;
+  final Realtime _realtime;
+  AuthAPI({required Account account, required Realtime realtime})
+      : _account = account,
+        _realtime = realtime;
 
   @override
   FutureEither<User> currentUserAccount() async {
@@ -131,13 +137,16 @@ class AuthAPI implements IAuthApi {
       return left(Failure(e.toString(), stackTrace));
     }
   }
-  
+
   @override
-  FutureEitherVoid logout() async{
+  Stream<RealtimeMessage> getAccountEvents() {
+    return _realtime.subscribe(['account']).stream;
+  }
+
+  @override
+  FutureEitherVoid logout() async {
     try {
-        await _account.deleteSession(
-        sessionId: 'current'
-      );
+      await _account.deleteSession(sessionId: 'current');
       return right(null);
     } on AppwriteException catch (e, stackTrace) {
       return left(
@@ -146,6 +155,5 @@ class AuthAPI implements IAuthApi {
     } catch (e, stackTrace) {
       return left(Failure(e.toString(), stackTrace));
     }
-    
   }
 }

@@ -13,31 +13,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final userProfileControllerProvider =
     StateNotifierProvider<UserProfileController, bool>((ref) {
-      return UserProfileController(
-        roarAPI: ref.watch(roarAPIProvider),
-        storageAPI: ref.watch(
-          storageAPIProvider,
-        ), // Esta línea faltaba o era incorrecta
-        userAPI: ref.watch(userAPIProvider),
-        notificationController: ref.watch(
-          notificationControllerProvider.notifier,
-        ),
-      );
-    });
+  return UserProfileController(
+    roarAPI: ref.watch(roarAPIProvider),
+    storageAPI: ref.watch(storageAPIProvider),
+    userAPI: ref.watch(userAPIProvider),
+    notificationController: ref.watch(notificationControllerProvider.notifier),
+  );
+});
 
 final getUserRoarsProvider = FutureProvider.family<List<Roar>, String>((
   ref,
   uid,
 ) async {
-  final userProfileController = ref.watch(
-    userProfileControllerProvider.notifier,
-  );
+  final userProfileController = ref.watch(userProfileControllerProvider.notifier);
   return userProfileController.getUserRoars(uid);
 });
 
-final getLatestUserProfileDataProvider = StreamProvider((ref) {
+// Nuevo provider para obtener datos de usuario en tiempo real por UID
+final userDataProvider = StreamProvider.family<UserModel, String>((ref, uid) {
   final userAPI = ref.watch(userAPIProvider);
-  return userAPI.getLatestUserProfileData();
+  return userAPI.getUserDataStream(uid).map((event) {
+    return UserModel.fromMap(event.payload);
+  });
 });
 
 class UserProfileController extends StateNotifier<bool> {
@@ -51,11 +48,11 @@ class UserProfileController extends StateNotifier<bool> {
     required StorageAPI storageAPI,
     required UserAPI userAPI,
     required NotificationController notificationController,
-  }) : _roarAPI = roarAPI,
-       _storageAPI = storageAPI,
-       _userAPI = userAPI,
-       _notificationController = notificationController,
-       super(false);
+  })  : _roarAPI = roarAPI,
+        _storageAPI = storageAPI,
+        _userAPI = userAPI,
+        _notificationController = notificationController,
+        super(false);
 
   Future<List<Roar>> getUserRoars(String uid) async {
     final roars = await _roarAPI.getUserRoars(uid);
