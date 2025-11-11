@@ -8,7 +8,9 @@ import 'package:esfotalk_app/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final authControllerProvider = StateNotifierProvider<AuthController, bool>((ref) {
+final authControllerProvider = StateNotifierProvider<AuthController, bool>((
+  ref,
+) {
   return AuthController(
     authAPI: ref.watch(authAPIProvider),
     userAPI: ref.watch(userAPIProvider),
@@ -47,8 +49,38 @@ final currentUserDetailsProvider = FutureProvider((ref) async {
   if (currentUserAccount == null) {
     return null;
   }
-  final userDetails = await ref.watch(userDetailsProvider(currentUserAccount.$id).future);
-  return userDetails;
+  // Importante: no usar .future sobre un StreamProvider infinito; tomamos la foto inicial directamente.
+  final userAPI = ref.watch(userAPIProvider);
+  try {
+    final doc = await userAPI.getUserData(currentUserAccount.$id);
+    return UserModel.fromMap(doc.data);
+  } on Exception catch (e) {
+    // Si el documento de usuario no existe (porque se vació la tabla), intentar recrearlo rápido.
+    debugPrint(
+      '[DEBUG] currentUserDetailsProvider - usuario no encontrado, recreando: $e',
+    );
+    final fallback = UserModel(
+      name: getNameFromEmail(currentUserAccount.email),
+      email: currentUserAccount.email,
+      followers: const [],
+      following: const [],
+      profilePic: '',
+      bannerPic: '',
+      uid: currentUserAccount.$id,
+      bio: '',
+      isDragonred: false,
+    );
+    try {
+      await userAPI.saveUserData(userModel: fallback);
+      debugPrint('[DEBUG] currentUserDetailsProvider - usuario recreado');
+      return fallback;
+    } catch (e2) {
+      debugPrint(
+        '[DEBUG] currentUserDetailsProvider - fallo al recrear usuario: $e2',
+      );
+      return fallback; // Retorna el modelo básico para que la UI avance.
+    }
+  }
 });
 
 class AuthController extends StateNotifier<bool> {
@@ -60,17 +92,14 @@ class AuthController extends StateNotifier<bool> {
     required AuthAPI authAPI,
     required UserAPI userAPI,
     required Ref ref,
-  })  : _authAPI = authAPI,
-        _userAPI = userAPI,
-        _ref = ref,
-        super(false);
+  }) : _authAPI = authAPI,
+       _userAPI = userAPI,
+       _ref = ref,
+       super(false);
 
   Future<User?> currentUser() async {
     final res = await _authAPI.currentUserAccount();
-    return res.fold(
-      (l) => null,
-      (r) => r,
-    );
+    return res.fold((l) => null, (r) => r);
   }
 
   void signUp({
@@ -81,37 +110,34 @@ class AuthController extends StateNotifier<bool> {
     state = true;
     final res = await _authAPI.signUp(email: email, password: password);
     state = false;
-    res.fold(
-      (l) => showSnackBar(context, l.message),
-      (r) async {
-        final loginRes = await _authAPI.login(email: email, password: password);
-        loginRes.fold(
-          (l) => showSnackBar(context, 'Error al iniciar sesión: ${l.message}'),
-          (session) async {
-            UserModel userModel = UserModel(
-              name: getNameFromEmail(email),
-              email: r.email,
-              followers: const [],
-              following: const [],
-              profilePic: '',
-              bannerPic: '',
-              uid: r.$id,
-              bio: '',
-              isDragonred: false,
+    res.fold((l) => showSnackBar(context, l.message), (r) async {
+      final loginRes = await _authAPI.login(email: email, password: password);
+      loginRes.fold(
+        (l) => showSnackBar(context, 'Error al iniciar sesión: ${l.message}'),
+        (session) async {
+          UserModel userModel = UserModel(
+            name: getNameFromEmail(email),
+            email: r.email,
+            followers: const [],
+            following: const [],
+            profilePic: '',
+            bannerPic: '',
+            uid: r.$id,
+            bio: '',
+            isDragonred: false,
+          );
+          final res2 = await _userAPI.saveUserData(userModel: userModel);
+          res2.fold((l) => showSnackBar(context, l.message), (r) async {
+            await sendVerificationEmail(context);
+            showSnackBar(
+              context,
+              'Cuenta creada. Revisa tu email para verificar.',
             );
-            final res2 = await _userAPI.saveUserData(userModel: userModel);
-            res2.fold(
-              (l) => showSnackBar(context, l.message),
-              (r) async {
-                await sendVerificationEmail(context);
-                showSnackBar(context, 'Cuenta creada. Revisa tu email para verificar.');
-                Navigator.pushReplacement(context, HomeView.route());
-              },
-            );
-          },
-        );
-      },
-    );
+            Navigator.pushReplacement(context, HomeView.route());
+          });
+        },
+      );
+    });
   }
 
   void login({

@@ -32,6 +32,7 @@ final getRoarsProvider = StreamProvider((ref) async* {
 
   // 2. Escucha los cambios en tiempo real y vuelve a cargar la lista
   final stream = ref.watch(roarAPIProvider).getLatestRoars();
+  // ignore: unused_local_variable
   await for (final event in stream) {
     final updatedRoars = await roarController.getRoars();
     yield updatedRoars;
@@ -39,7 +40,10 @@ final getRoarsProvider = StreamProvider((ref) async* {
 });
 
 // Proveedor de stream para las respuestas a un roar específico
-final getRepliesToRoarsProvider = StreamProvider.family<List<Roar>, String>((ref, roarId) async* {
+final getRepliesToRoarsProvider = StreamProvider.family<List<Roar>, String>((
+  ref,
+  roarId,
+) async* {
   final roarController = ref.watch(roarControllerProvider.notifier);
   // 1. Carga inicial de respuestas
   final initialReplies = await roarController.getRepliesToRoar(roarId);
@@ -48,11 +52,16 @@ final getRepliesToRoarsProvider = StreamProvider.family<List<Roar>, String>((ref
   // 2. Escucha los cambios y vuelve a cargar si son relevantes
   final stream = ref.watch(roarAPIProvider).getLatestRoars();
   await for (final event in stream) {
-    final payload = Roar.fromMap(event.payload);
-    // Vuelve a cargar solo si el cambio es una respuesta a este roar
-    if (payload.repliedTo == roarId) {
-      final updatedReplies = await roarController.getRepliesToRoar(roarId);
-      yield updatedReplies;
+    // Evita errores si el payload no coincide con el modelo esperado
+    try {
+      final payload = Roar.fromMap(event.payload);
+      // Vuelve a cargar solo si el cambio es una respuesta a este roar
+      if (payload.repliedTo == roarId) {
+        final updatedReplies = await roarController.getRepliesToRoar(roarId);
+        yield updatedReplies;
+      }
+    } catch (_) {
+      // Ignorar eventos que no correspondan a Roar
     }
   }
 });
@@ -91,12 +100,14 @@ class RoarController extends StateNotifier<bool> {
 
   Future<List<Roar>> getRoars() async {
     final roarList = await _roarAPI.getRoars();
-    return roarList.map((doc) => Roar.fromMap(doc.data)).toList();
+    return roarList
+        .map((doc) => Roar.fromMap({...doc.data, 'id': doc.$id}))
+        .toList();
   }
 
   Future<Roar> getRoarById(String id) async {
     final roar = await _roarAPI.getRoarById(id);
-    return Roar.fromMap((roar).data);
+    return Roar.fromMap({...roar.data, 'id': roar.$id});
   }
 
   void likeRoar(Roar roar, UserModel user) async {
@@ -181,12 +192,16 @@ class RoarController extends StateNotifier<bool> {
 
   Future<List<Roar>> getRepliesToRoar(String roarId) async {
     final documents = await _roarAPI.getRepliesToRoar(roarId);
-    return documents.map((roar) => Roar.fromMap(roar.data)).toList();
+    return documents
+        .map((doc) => Roar.fromMap({...doc.data, 'id': doc.$id}))
+        .toList();
   }
 
-   Future<List<Roar>> getRoarsByHashtag(String hashtag) async {
+  Future<List<Roar>> getRoarsByHashtag(String hashtag) async {
     final documents = await _roarAPI.getRoarsByHashtag(hashtag);
-    return documents.map((roar) => Roar.fromMap(roar.data)).toList();
+    return documents
+        .map((doc) => Roar.fromMap({...doc.data, 'id': doc.$id}))
+        .toList();
   }
 
   void _shareImageRoar({
@@ -197,38 +212,57 @@ class RoarController extends StateNotifier<bool> {
     required String repliedToUserId,
   }) async {
     state = true;
-    final hashtags = _getHashtagsFromText(text);
+    var hashtags = _normalizeHashtags(_getHashtagsFromText(text));
+    // Fallback: garantizar que se guarde aunque no haya hashtags
+    if (hashtags.isEmpty) {
+      hashtags = ['#esfotalk'];
+    }
     String link = _getLinkFromText(text);
-    final user = _ref.read(currentUserDetailsProvider).value!;
+    // Asegurar que el usuario esté disponible
+    final userAsync = _ref.read(currentUserDetailsProvider);
+    final user = userAsync.value;
+    if (user == null) {
+      showSnackBar(context, 'No se pudo obtener tu usuario. Intenta de nuevo.');
+      state = false;
+      return;
+    }
     final imageLinks = await _storageAPI.uploadImage(images);
+    if (imageLinks.isEmpty) {
+      showSnackBar(context, 'No se pudo subir la imagen. Intenta de nuevo.');
+      state = false;
+      return;
+    }
 
-        Roar roar = Roar(
-          text: text,
-          hashtags: hashtags,
-          link: link,
-          imageLinks: imageLinks,
-          uid: user.uid,
-          roarType: RoarType.image,
-          roaredAt: DateTime.now(),
-          likes: [],
-          commentIds: [],
-          id: '',
-          reshareCount: 0,
-          reroaredBy: '',
-          repliedTo: repliedTo,
+    Roar roar = Roar(
+      text: text,
+      hashtags: hashtags,
+      link: link,
+      imageLinks: imageLinks,
+      uid: user.uid,
+      roarType: RoarType.image,
+      roaredAt: DateTime.now(),
+      likes: [],
+      commentIds: [],
+      id: '', // se asignará tras creación
+      reshareCount: 0,
+      reroaredBy: '',
+      repliedTo: repliedTo,
+    );
+    final res = await _roarAPI.shareRoar(roar);
+
+    res.fold((l) => showSnackBar(context, l.message), (r) {
+      if (repliedTo.isNotEmpty) {
+        _notificationController.createNotification(
+          text: '¡${user.name} ha contestado tu rugido!',
+          postId: r.$id,
+          uid: repliedToUserId,
+          notificationType: NotificationType.reply,
         );
-        final res = await _roarAPI.shareRoar(roar);
-
-        res.fold((l) => showSnackBar(context, l.message), (r) {
-          if (repliedTo.isNotEmpty) {
-            _notificationController.createNotification(
-              text: '¡${user.name} ha contestado tu rugido!',
-              postId: r.$id,
-              uid: repliedToUserId,
-              notificationType: NotificationType.reply,
-            );
-          }
-        });
+      }
+      if (repliedTo.isEmpty) {
+        showSnackBar(context, '¡Rugido publicado!');
+      }
+    });
     state = false;
   }
 
@@ -239,9 +273,21 @@ class RoarController extends StateNotifier<bool> {
     required String repliedToUserId,
   }) async {
     state = true;
-    final hashtags = _getHashtagsFromText(text);
+    var hashtags = _normalizeHashtags(_getHashtagsFromText(text));
+    // Fallback: garantizar que se guarde aunque no haya hashtags
+    if (hashtags.isEmpty) {
+      hashtags = ['#esfotalk'];
+    }
+
     String link = _getLinkFromText(text);
-    final user = _ref.read(currentUserDetailsProvider).value!;
+    // Asegurar que el usuario esté disponible
+    final userAsync = _ref.read(currentUserDetailsProvider);
+    final user = userAsync.value;
+    if (user == null) {
+      showSnackBar(context, 'No se pudo obtener tu usuario. Intenta de nuevo.');
+      state = false;
+      return;
+    }
     Roar roar = Roar(
       text: text,
       hashtags: hashtags,
@@ -252,7 +298,7 @@ class RoarController extends StateNotifier<bool> {
       roaredAt: DateTime.now(),
       likes: [],
       commentIds: [],
-      id: '',
+      id: '', // se asignará tras creación
       reshareCount: 0,
       reroaredBy: '',
       repliedTo: repliedTo,
@@ -266,6 +312,9 @@ class RoarController extends StateNotifier<bool> {
           uid: repliedToUserId,
           notificationType: NotificationType.reply,
         );
+      }
+      if (repliedTo.isEmpty) {
+        showSnackBar(context, '¡Rugido publicado!');
       }
     });
     state = false;
@@ -283,13 +332,24 @@ class RoarController extends StateNotifier<bool> {
   }
 
   List<String> _getHashtagsFromText(String text) {
-    List<String> hashtags = [];
-    List<String> wordInSentence = text.split(' ');
-    for (String word in wordInSentence) {
+    final words = text.split(RegExp(r"\s+"));
+    final tags = <String>[];
+    for (var word in words) {
       if (word.startsWith('#')) {
-        hashtags.add(word);
+        tags.add(word);
       }
     }
-    return hashtags;
+    return tags;
+  }
+
+  // Normaliza hashtags: quita espacios, evita vacíos/duplicados y agrega # si falta
+  List<String> _normalizeHashtags(List<String> tags) {
+    final cleaned = tags
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .map((t) => t.startsWith('#') ? t : '#$t')
+        .toSet()
+        .toList();
+    return cleaned;
   }
 }

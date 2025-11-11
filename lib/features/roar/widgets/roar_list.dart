@@ -10,9 +10,40 @@ class RoarList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // El widget ahora solo consume el StreamProvider
-    return ref.watch(getRoarsProvider).when(
-          // La lista de 'roars' que se recibe ya está siempre actualizada
+    return ref
+        .watch(getRoarsProvider)
+        .when(
           data: (roars) {
+            if (roars.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.chat_bubble_outline,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No hay rugidos todavía',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '¡Sé el primero en rugir! Usa el botón + para publicar tu primer rugido.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
             return ListView.builder(
               itemCount: roars.length,
               itemBuilder: (BuildContext context, int index) {

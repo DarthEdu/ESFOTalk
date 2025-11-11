@@ -33,13 +33,17 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
   }
 
   void shareRoar() {
-    ref.read(roarControllerProvider.notifier).shareRoar(
+    ref
+        .read(roarControllerProvider.notifier)
+        .shareRoar(
           text: roarTextController.text,
           images: images,
           context: context,
           repliedTo: '',
           repliedToUserId: '',
         );
+    // Mantén la UX del repo guía: cerrar al publicar (el feed se actualiza por stream)
+    Navigator.pop(context);
   }
 
   void onPickImages() async {
@@ -109,7 +113,7 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 5),
                             child: Image.file(file),
                           );
-                        },).toList(),
+                        }).toList(),
                         options: CarouselOptions(
                           height: 400,
                           enableInfiniteScroll: false,

@@ -9,6 +9,8 @@ class AppwriteConstants {
 
   static const String imagesBucket = '6900f044000e9dfd367f';
 
+  // Construye una URL de vista para archivos accesible con sesión de usuario.
+  // No usar mode=admin en clientes.
   static String imageUrl(String imageId) =>
-      '$endPoint/storage/buckets/$imagesBucket/files/$imageId/view?project=$projectId&mode=admin';
+      '$endPoint/storage/buckets/$imagesBucket/files/$imageId/view?project=$projectId';
 }

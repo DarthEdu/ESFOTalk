@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:appwrite/appwrite.dart';
 import 'package:esfotalk_app/constants/appwrite_constants.dart';
@@ -8,9 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
 final storageAPIProvider = Provider((ref) {
-  return StorageAPI(
-    storage: ref.watch(appwriteStorageProvider),
-  );
+  return StorageAPI(storage: ref.watch(appwriteStorageProvider));
 });
 
 class StorageAPI {
@@ -42,10 +41,28 @@ class StorageAPI {
           filename: compressedFile.path.split('/').last,
         ),
       );
-      imageLinks.add(
-        AppwriteConstants.imageUrl(uploadedImage.$id),
-      );
+      imageLinks.add(AppwriteConstants.imageUrl(uploadedImage.$id));
     }
     return imageLinks;
+  }
+
+  // Descarga bytes para mostrar imágenes autenticadas sin confiar en modo admin.
+  Future<Uint8List?> getImageBytesFromUrl(String url) async {
+    try {
+      // Extraer fileId de la URL esperada .../files/<fileId>/view?
+      final uri = Uri.parse(url);
+      final segments = uri.pathSegments;
+      final filesIndex = segments.indexOf('files');
+      if (filesIndex == -1 || filesIndex + 1 >= segments.length) return null;
+      final fileId = segments[filesIndex + 1];
+      // ignore: deprecated_member_use
+      final result = await _storage.getFileDownload(
+        bucketId: AppwriteConstants.imagesBucket,
+        fileId: fileId,
+      );
+      return result;
+    } catch (_) {
+      return null;
+    }
   }
 }

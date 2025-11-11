@@ -41,6 +41,12 @@ class UserAPI implements IUserApi {
         collectionId: AppwriteConstants.usersTable,
         documentId: userModel.uid,
         data: userModel.toMap(),
+        permissions: [
+          Permission.read(Role.users()),
+          Permission.write(Role.user(userModel.uid)),
+          Permission.update(Role.user(userModel.uid)),
+          Permission.delete(Role.user(userModel.uid)),
+        ],
       );
       return right(null);
     } on AppwriteException catch (e, st) {
@@ -87,12 +93,13 @@ class UserAPI implements IUserApi {
   }
 
   @override
-  Stream<RealtimeMessage> getUserDataStream(String uid) { // Cambio aquí
+  Stream<RealtimeMessage> getUserDataStream(String uid) {
+    // Cambio aquí
     return _realtime.subscribe([
       'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.usersTable}.documents.$uid',
     ]).stream;
   }
-  
+
   @override
   FutureEitherVoid followUser(UserModel user) async {
     try {
@@ -100,9 +107,7 @@ class UserAPI implements IUserApi {
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.usersTable,
         documentId: user.uid,
-        data: {
-          'followers': user.followers,
-        },
+        data: {'followers': user.followers},
       );
       return right(null);
     } on AppwriteException catch (e, st) {
@@ -111,7 +116,7 @@ class UserAPI implements IUserApi {
       return left(Failure(e.toString(), st));
     }
   }
-  
+
   @override
   FutureEitherVoid addToFollowing(UserModel user) async {
     try {
@@ -119,9 +124,7 @@ class UserAPI implements IUserApi {
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.usersTable,
         documentId: user.uid,
-        data: {
-          'following': user.following,
-        },
+        data: {'following': user.following},
       );
       return right(null);
     } on AppwriteException catch (e, st) {
