@@ -222,37 +222,38 @@ class RoarController extends StateNotifier<bool> {
     UserModel currentUser,
     BuildContext context,
   ) async {
-    roar = roar.copyWith(
+    state = true;
+
+    // Guardar el UID original del roar para la notificación
+    final originalRoarUid = roar.uid;
+
+    // Crear una copia del roar con el usuario actual como dueño
+    final reroaredRoar = roar.copyWith(
+      id: ID.unique(), // Nuevo ID para el reroar
+      uid: currentUser.uid, // El usuario actual es el dueño del reroar
       reroaredBy: currentUser.name,
       likes: [],
       commentIds: [],
-      reshareCount: roar.reshareCount + 1,
+      reshareCount: 0,
+      roaredAt: DateTime.now(),
     );
-    final res = await _roarAPI.updateReshareCount(roar);
+
+    final res = await _roarAPI.shareRoar(reroaredRoar);
+    state = false;
+
     res.fold(
       (l) => showSnackBar(context, l.message, type: SnackBarType.error),
-      (r) async {
-        roar = roar.copyWith(
-          id: ID.unique(),
-          reshareCount: 0,
-          roaredAt: DateTime.now(),
+      (r) {
+        _notificationController.createNotification(
+          text: '¡${currentUser.name} compartió tu rugido!',
+          postId: r.$id,
+          uid: originalRoarUid, // Notificar al autor original
+          notificationType: NotificationType.reroar,
         );
-        final res2 = await _roarAPI.shareRoar(roar);
-        res2.fold(
-          (l) => showSnackBar(context, l.message, type: SnackBarType.error),
-          (r) {
-            _notificationController.createNotification(
-              text: '¡${currentUser.name} compartió tu rugido!',
-              postId: roar.id,
-              uid: roar.uid,
-              notificationType: NotificationType.reroar,
-            );
-            showSnackBar(
-              context,
-              'Rugido compartido con éxito',
-              type: SnackBarType.success,
-            );
-          },
+        showSnackBar(
+          context,
+          'Rugido compartido con éxito',
+          type: SnackBarType.success,
         );
       },
     );

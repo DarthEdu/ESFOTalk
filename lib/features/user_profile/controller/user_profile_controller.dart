@@ -31,11 +31,33 @@ final getUserRoarsProvider = FutureProvider.family((ref, String uid) async {
 });
 
 // Nuevo provider para obtener datos de usuario en tiempo real por UID
-final userDataProvider = StreamProvider.family<UserModel, String>((ref, uid) {
+final userDataProvider = StreamProvider.family<UserModel, String>((
+  ref,
+  uid,
+) async* {
   final userAPI = ref.watch(userAPIProvider);
-  return userAPI.getUserDataStream(uid).map((event) {
-    return UserModel.fromMap(event.payload);
-  });
+
+  try {
+    // 1. Cargar datos iniciales del usuario
+    final initialDoc = await userAPI.getUserData(uid);
+    final initialUser = UserModel.fromMap(initialDoc.data);
+    yield initialUser;
+
+    // 2. Escuchar cambios en tiempo real
+    await for (final event in userAPI.getUserDataStream(uid)) {
+      try {
+        if (event.payload.isEmpty) continue;
+        final updatedUser = UserModel.fromMap(event.payload);
+        yield updatedUser;
+      } catch (e) {
+        // Ignorar errores de parsing individual
+        continue;
+      }
+    }
+  } catch (e) {
+    // Si no se puede cargar el usuario, propagar el error
+    throw Exception('No se pudo cargar el usuario: $e');
+  }
 });
 
 class UserProfileController extends StateNotifier<bool> {

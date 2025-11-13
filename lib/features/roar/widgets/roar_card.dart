@@ -9,6 +9,7 @@ import 'package:esfotalk_app/features/roar/views/roar_reply_view.dart';
 import 'package:esfotalk_app/features/roar/widgets/carousel_image.dart';
 import 'package:esfotalk_app/features/roar/widgets/hashtag_text.dart';
 import 'package:esfotalk_app/features/roar/widgets/roar_icon_button.dart';
+import 'package:esfotalk_app/features/user_profile/controller/user_profile_controller.dart';
 import 'package:esfotalk_app/features/user_profile/view/user_profile_view.dart';
 import 'package:esfotalk_app/models/roar_model.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
@@ -29,7 +30,7 @@ class RoarCard extends ConsumerWidget {
     return currentUser == null
         ? const SizedBox()
         : ref
-              .watch(userDetailsProvider(roar.uid))
+              .watch(userDataProvider(roar.uid))
               .when(
                 data: (user) {
                   return GestureDetector(
@@ -123,32 +124,42 @@ class RoarCard extends ConsumerWidget {
                                         )
                                         .when(
                                           data: (repliedToRoar) {
-                                            final replyingToUser = ref
+                                            return ref
                                                 .watch(
-                                                  userDetailsProvider(
+                                                  userDataProvider(
                                                     repliedToRoar.uid,
                                                   ),
                                                 )
-                                                .value;
-                                            return RichText(
-                                              text: TextSpan(
-                                                text: 'Respondiendo a',
-                                                style: const TextStyle(
-                                                  color: Pallete.greyColor,
-                                                  fontSize: 16,
-                                                ),
-                                                children: [
-                                                  TextSpan(
-                                                    text:
-                                                        ' @${replyingToUser?.name}',
-                                                    style: const TextStyle(
-                                                      color: Pallete.vinoColor,
-                                                      fontSize: 16,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
+                                                .when(
+                                                  data: (replyingToUser) {
+                                                    return RichText(
+                                                      text: TextSpan(
+                                                        text: 'Respondiendo a',
+                                                        style: const TextStyle(
+                                                          color:
+                                                              Pallete.greyColor,
+                                                          fontSize: 16,
+                                                        ),
+                                                        children: [
+                                                          TextSpan(
+                                                            text:
+                                                                ' @${replyingToUser.name}',
+                                                            style:
+                                                                const TextStyle(
+                                                                  color: Pallete
+                                                                      .vinoColor,
+                                                                  fontSize: 16,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
+                                                  error: (error, st) =>
+                                                      const SizedBox(),
+                                                  loading: () =>
+                                                      const SizedBox(),
+                                                );
                                           },
                                           error: (error, st) => ErrorText(
                                             error: error.toString(),

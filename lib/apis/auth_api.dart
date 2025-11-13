@@ -26,9 +26,6 @@ abstract class IAuthApi {
   /// Devuelve `User` si hay sesión activa o `null` si no la hay o si ocurre un error.
   Future<User?> currentUserAccount();
 
-  /// Enviar email de verificación
-  FutureEitherVoid sendVerificationEmail();
-
   /// Enviar email de recuperación de contraseña
   FutureEitherVoid sendPasswordReset({required String email});
 
@@ -91,26 +88,6 @@ class AuthAPI implements IAuthApi {
     } on AppwriteException catch (e, stackTrace) {
       return left(
         Failure(e.message ?? 'Some unexpected error occurred', stackTrace),
-      );
-    } catch (e, stackTrace) {
-      return left(Failure(e.toString(), stackTrace));
-    }
-  }
-
-  @override
-  FutureEitherVoid sendVerificationEmail() async {
-    try {
-      await _account.createVerification(
-        url:
-            'https://darthedu.github.io/esfotalk_page_static?type=verification',
-      );
-      return right(null);
-    } on AppwriteException catch (e, stackTrace) {
-      return left(
-        Failure(
-          e.message ?? 'Error al enviar email de verificación',
-          stackTrace,
-        ),
       );
     } catch (e, stackTrace) {
       return left(Failure(e.toString(), stackTrace));

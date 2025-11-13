@@ -2,6 +2,7 @@ import 'package:appwrite/models.dart';
 import 'package:esfotalk_app/apis/auth_api.dart';
 import 'package:esfotalk_app/apis/user_api.dart';
 import 'package:esfotalk_app/core/utils.dart';
+import 'package:esfotalk_app/features/auth/view/login_view.dart';
 import 'package:esfotalk_app/features/auth/view/signup_view.dart';
 import 'package:esfotalk_app/features/home/view/home_view.dart';
 import 'package:esfotalk_app/models/user_model.dart';
@@ -27,13 +28,42 @@ final userDetailsProvider = FutureProvider.family((ref, String uid) {
   return authController.getUserData(uid);
 });
 
-final currentUserDetailsProvider = FutureProvider((ref) {
-  final currentUserId = ref.watch(currentUserAccountProvider).value?.$id;
-  if (currentUserId == null) {
-    return null;
+// Provider reactivo para el usuario actual - usa StreamProvider
+final currentUserDetailsProvider = StreamProvider((ref) async* {
+  try {
+    final currentUserAccount = await ref.watch(
+      currentUserAccountProvider.future,
+    );
+
+    if (currentUserAccount == null) {
+      yield null;
+      return;
+    }
+
+    final currentUserId = currentUserAccount.$id;
+    final userAPI = ref.watch(userAPIProvider);
+
+    // Primero, obtener los datos iniciales
+    try {
+      final initialDoc = await userAPI.getUserData(currentUserId);
+      yield UserModel.fromMap(initialDoc.data);
+    } catch (e) {
+      // Si no existe el documento, yield null
+      yield null;
+    }
+
+    // Luego, escuchar cambios en tiempo real
+    await for (final event in userAPI.getUserDataStream(currentUserId)) {
+      try {
+        yield UserModel.fromMap(event.payload);
+      } catch (e) {
+        // Ignorar errores de parsing
+        continue;
+      }
+    }
+  } catch (e) {
+    yield null;
   }
-  final userDetails = ref.watch(userDetailsProvider(currentUserId));
-  return userDetails.value;
 });
 
 class AuthController extends StateNotifier<bool> {
@@ -54,35 +84,62 @@ class AuthController extends StateNotifier<bool> {
   }) async {
     state = true;
     final res = await _authAPI.signUp(email: email, password: password);
-    state = false;
-    res.fold((l) => showSnackBar(context, l.message), (r) async {
-      final loginRes = await _authAPI.login(email: email, password: password);
-      loginRes.fold(
-        (l) => showSnackBar(context, 'Error al iniciar sesión: ${l.message}'),
-        (session) async {
-          UserModel userModel = UserModel(
-            name: getNameFromEmail(email),
-            email: r.email,
-            followers: const [],
-            following: const [],
-            profilePic: '',
-            bannerPic: '',
-            uid: r.$id,
-            bio: '',
-            isDragonred: false,
-          );
-          final res2 = await _userAPI.saveUserData(userModel: userModel);
-          res2.fold((l) => showSnackBar(context, l.message), (r) async {
-            await sendVerificationEmail(context);
+
+    await res.fold(
+      (l) async {
+        state = false;
+        showSnackBar(context, l.message, type: SnackBarType.error);
+      },
+      (r) async {
+        // Iniciar sesión inmediatamente después de crear la cuenta
+        // Esto es necesario para que Appwrite valide los permisos al guardar el documento
+        final loginRes = await _authAPI.login(email: email, password: password);
+
+        await loginRes.fold(
+          (l) async {
+            state = false;
             showSnackBar(
               context,
-              'Cuenta creada. Revisa tu email para verificar.',
+              'Error al iniciar sesión: ${l.message}',
+              type: SnackBarType.error,
             );
-            Navigator.pushReplacement(context, HomeView.route());
-          });
-        },
-      );
-    });
+          },
+          (session) async {
+            // Ahora que hay sesión activa, guardar el usuario en la BD
+            UserModel userModel = UserModel(
+              name: getNameFromEmail(email),
+              email: r.email,
+              followers: const [],
+              following: const [],
+              profilePic: '',
+              bannerPic: '',
+              uid: r.$id,
+              bio: '',
+              isDragonred: false,
+            );
+
+            final res2 = await _userAPI.saveUserData(userModel: userModel);
+            state = false;
+
+            res2.fold(
+              (l) => showSnackBar(context, l.message, type: SnackBarType.error),
+              (r) {
+                // Cerrar sesión para que el usuario inicie sesión manualmente
+                _authAPI.logout();
+
+                // Cuenta creada exitosamente, redirigir al login
+                showSnackBar(
+                  context,
+                  'Cuenta creada exitosamente. Por favor, inicia sesión.',
+                  type: SnackBarType.success,
+                );
+                Navigator.pushReplacement(context, LoginView.route());
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
   void login({
@@ -96,11 +153,6 @@ class AuthController extends StateNotifier<bool> {
     res.fold((l) => showSnackBar(context, l.message), (r) {
       Navigator.push(context, HomeView.route());
     });
-  }
-
-  Future<void> sendVerificationEmail(BuildContext context) async {
-    final res = await _authAPI.sendVerificationEmail();
-    res.fold((l) => showSnackBar(context, l.message), (r) => null);
   }
 
   Future<void> sendPasswordReset({

@@ -69,9 +69,13 @@ class RoarAPI implements IRoarApi {
         queries: [Query.orderDesc(r'$createdAt'), Query.limit(100)],
       );
       return documents.documents;
-    } on AppwriteException {
+    } on AppwriteException catch (e) {
+      print(
+        'AppwriteException al obtener roars: ${e.message} - Code: ${e.code}',
+      );
       return [];
-    } catch (_) {
+    } catch (e) {
+      print('Error al obtener roars: $e');
       return [];
     }
   }
