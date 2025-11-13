@@ -8,8 +8,7 @@ import 'package:esfotalk_app/models/notification_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fpdart/fpdart.dart';
 
-// ignore: non_constant_identifier_names
-final NotificationAPIProvider = Provider((ref) {
+final notificationAPIProvider = Provider((ref) {
   return NotificationAPI(
     databases: ref.watch(appwriteDatabaseProvider),
     realtime: ref.watch(appwriteRealtimeProvider),
@@ -18,7 +17,7 @@ final NotificationAPIProvider = Provider((ref) {
 
 abstract class INotificationAPI {
   FutureEitherVoid createNotification(Notification notification);
-  Future<List<Document>> getNotification(String uid);
+  Future<List<Document>> getNotifications(String uid);
   Stream<RealtimeMessage> getLatestNotification();
 }
 
@@ -33,7 +32,7 @@ class NotificationAPI implements INotificationAPI {
   @override
   FutureEitherVoid createNotification(Notification notification) async {
     try {
-      // ignore: deprecated_member_use
+      // TODO: Migrar a TablesDB.createRow cuando se actualice user_api.
       await _databases.createDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.notificationTable,
@@ -49,8 +48,7 @@ class NotificationAPI implements INotificationAPI {
   }
 
   @override
-  Future<List<Document>> getNotification(String uid) async {
-    // ignore: deprecated_member_use
+  Future<List<Document>> getNotifications(String uid) async {
     final documents = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.notificationTable,

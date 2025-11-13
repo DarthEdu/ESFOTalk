@@ -1,5 +1,5 @@
-import 'package:esfotalk_app/core/enums/roar_type_enum.dart';
 import 'package:flutter/foundation.dart';
+import 'package:esfotalk_app/core/enums/roar_type_enum.dart';
 
 @immutable
 class Roar {
@@ -96,7 +96,7 @@ class Roar {
       ),
       likes: List<String>.from((map['likes'] ?? const []) as List),
       commentIds: List<String>.from((map['commentIds'] ?? const []) as List),
-      id: (map['id'] ?? '') as String,
+      id: (map['\$id'] ?? '') as String,
       reshareCount: (map['reshareCount'] ?? 0) as int,
       reroaredBy: (map['reroaredBy'] ?? '') as String,
       repliedTo: (map['repliedTo'] ?? '') as String,
@@ -116,39 +116,44 @@ class Roar {
   }
 
   @override
-  String toString() => 'Roar(${toMap()})';
-
-  @override
-  bool operator ==(covariant Roar other) {
-    if (identical(this, other)) return true;
-    return text == other.text &&
-        listEquals(hashtags, other.hashtags) &&
-        link == other.link &&
-        listEquals(imageLinks, other.imageLinks) &&
-        uid == other.uid &&
-        roarType == other.roarType &&
-        roaredAt == other.roaredAt &&
-        listEquals(likes, other.likes) &&
-        listEquals(commentIds, other.commentIds) &&
-        id == other.id &&
-        reshareCount == other.reshareCount &&
-        reroaredBy == other.reroaredBy &&
-        repliedTo == other.repliedTo;
+  String toString() {
+    return 'Roar(text: $text, hashtags: $hashtags, link: $link, imageLinks: $imageLinks, uid: $uid, roarType: $roarType, roaredAt: $roaredAt, likes: $likes, commentIds: $commentIds, id: $id, reshareCount: $reshareCount, reroaredBy: $reroaredBy, repliedTo: $repliedTo)';
   }
 
   @override
-  int get hashCode =>
-      text.hashCode ^
-      hashtags.hashCode ^
-      link.hashCode ^
-      imageLinks.hashCode ^
-      uid.hashCode ^
-      roarType.hashCode ^
-      roaredAt.hashCode ^
-      likes.hashCode ^
-      commentIds.hashCode ^
-      id.hashCode ^
-      reshareCount.hashCode ^
-      reroaredBy.hashCode ^
-      repliedTo.hashCode;
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Roar &&
+        other.text == text &&
+        listEquals(other.hashtags, hashtags) &&
+        other.link == link &&
+        listEquals(other.imageLinks, imageLinks) &&
+        other.uid == uid &&
+        other.roarType == roarType &&
+        other.roaredAt == roaredAt &&
+        listEquals(other.likes, likes) &&
+        listEquals(other.commentIds, commentIds) &&
+        other.id == id &&
+        other.reshareCount == reshareCount &&
+        other.reroaredBy == reroaredBy &&
+        other.repliedTo == repliedTo;
+  }
+
+  @override
+  int get hashCode {
+    return text.hashCode ^
+        hashtags.hashCode ^
+        link.hashCode ^
+        imageLinks.hashCode ^
+        uid.hashCode ^
+        roarType.hashCode ^
+        roaredAt.hashCode ^
+        likes.hashCode ^
+        commentIds.hashCode ^
+        id.hashCode ^
+        reshareCount.hashCode ^
+        reroaredBy.hashCode ^
+        repliedTo.hashCode;
+  }
 }

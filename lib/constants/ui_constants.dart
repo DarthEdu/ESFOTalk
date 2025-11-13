@@ -12,15 +12,14 @@ class UiConstants {
       backgroundColor: Pallete.backgroundColor,
       title: SvgPicture.asset(
         AssetsConstants.dragonLogo,
-        // ignore: deprecated_member_use
-        color: Pallete.vinoColor,
+        colorFilter: const ColorFilter.mode(Pallete.vinoColor, BlendMode.srcIn),
         height: 30,
       ),
       centerTitle: true,
     );
   }
 
-  static List<Widget> bottomTabBarPages = [
+  static const List<Widget> bottomTabBarPages = [
     RoarList(),
     ExploreView(),
     NotificationView(),

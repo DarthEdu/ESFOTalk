@@ -16,21 +16,32 @@ class NotificationView extends ConsumerWidget {
       appBar: AppBar(title: const Text('Notificaciones'), centerTitle: true),
       body: currentUser == null
           ? const Loader()
-          : ref.watch(getNotificationProvider(currentUser.uid)).when(
-                data: (notifications) {
-                  // La lista ya está siempre actualizada por el StreamProvider
-                  return ListView.builder(
-                    itemCount: notifications.length,
-                    itemBuilder: (BuildContext context, index) {
-                      final notification = notifications[index];
-                      return NotificationTile(notification: notification);
-                    },
-                  );
-                },
-                error: (error, stackTrace) =>
-                    ErrorText(error: error.toString()),
-                loading: () => const Loader(),
-              ),
+          : ref
+                .watch(getNotificationProvider(currentUser.uid))
+                .when(
+                  data: (notifications) {
+                    if (notifications.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'No tienes notificaciones aún.',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: notifications.length,
+                      itemBuilder: (context, index) {
+                        final notification = notifications[index];
+                        return NotificationTile(notification: notification);
+                      },
+                    );
+                  },
+                  error: (error, stackTrace) => ErrorText(
+                    error: error.toString(),
+                    onRetry: () => ref.invalidate(getNotificationProvider),
+                  ),
+                  loading: () => const Loader(),
+                ),
     );
   }
 }

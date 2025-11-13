@@ -1,5 +1,5 @@
-import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/material.dart';
+import 'package:esfotalk_app/theme/pallete.dart';
 
 class FollowCount extends StatelessWidget {
   final int count;
@@ -9,20 +9,21 @@ class FollowCount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double fontSize = 18;
+
     return Row(
       children: [
         Text(
           '$count',
           style: TextStyle(
-            fontSize: fontSize,
             color: Pallete.whiteColor,
+            fontSize: fontSize,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(width: 3),
         Text(
           text,
-          style: TextStyle(fontSize: fontSize, color: Pallete.greyColor),
+          style: TextStyle(color: Pallete.greyColor, fontSize: fontSize),
         ),
       ],
     );

@@ -1,11 +1,10 @@
-import 'package:esfotalk_app/features/roar/views/hashtag_view.dart';
-import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:esfotalk_app/features/roar/views/hashtag_view.dart';
+import 'package:esfotalk_app/theme/pallete.dart';
 
 class HashtagText extends StatelessWidget {
   final String text;
-
   const HashtagText({super.key, required this.text});
 
   @override

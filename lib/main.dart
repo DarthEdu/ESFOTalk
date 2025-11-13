@@ -21,12 +21,11 @@ class MyApp extends ConsumerWidget {
       home: ref
           .watch(currentUserAccountProvider)
           .when(
-            // Esto sigue siendo un Future, pero el impacto es menor si la UI de carga es simple.
             data: (user) {
               if (user != null) {
                 return const HomeView();
               }
-              return const LoginView(); // O SignUpView, según tu flujo
+              return const LoginView();
             },
             error: (error, st) => ErrorPage(error: error.toString()),
             loading: () => const LoadingPage(),

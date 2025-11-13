@@ -1,12 +1,12 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esfotalk_app/common/loading_page.dart';
 import 'package:esfotalk_app/core/utils.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/features/user_profile/controller/user_profile_controller.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class EditProfileView extends ConsumerStatefulWidget {
   static route() =>
@@ -43,7 +43,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   }
 
   void selectBannerImage() async {
-    final banner = await pickImage();
+    final banner = await pickImageFromGallery();
     if (banner != null) {
       setState(() {
         bannerImage = banner;
@@ -52,7 +52,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   }
 
   void selectProfileImage() async {
-    final profile = await pickImage();
+    final profile = await pickImageFromGallery();
     if (profile != null) {
       setState(() {
         profileImage = profile;
@@ -105,7 +105,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: bannerImage != null
-                              ? Image.file(bannerImage!)
+                              ? Image.file(bannerImage!, fit: BoxFit.fitWidth)
                               : user.bannerPic.isEmpty
                               ? Container(color: Pallete.vinoColor)
                               : Image.network(
@@ -142,14 +142,14 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                     contentPadding: EdgeInsets.all(18),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
                 TextField(
                   controller: bioController,
                   decoration: const InputDecoration(
                     hintText: 'Presentación',
                     contentPadding: EdgeInsets.all(18),
                   ),
-                  maxLines: 5,
+                  maxLines: 4,
                 ),
               ],
             ),

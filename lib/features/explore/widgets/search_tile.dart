@@ -17,6 +17,7 @@ class SearchTile extends StatelessWidget {
       leading: CircleAvatar(
         backgroundImage: NetworkImage(userModel.profilePic),
         radius: 30,
+        backgroundColor: Pallete.greyColor,
       ),
       title: Text(
         userModel.name,
@@ -25,10 +26,16 @@ class SearchTile extends StatelessWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('@${userModel.name}', style: const TextStyle(fontSize: 16)),
+          Text(
+            '@${userModel.name}',
+            style: const TextStyle(fontSize: 16, color: Pallete.greyColor),
+          ),
+          const SizedBox(height: 2),
           Text(
             userModel.bio,
             style: const TextStyle(color: Pallete.whiteColor),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

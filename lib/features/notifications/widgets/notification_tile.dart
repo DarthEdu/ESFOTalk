@@ -17,21 +17,23 @@ class NotificationTile extends StatelessWidget {
           : notification.notificationType == NotificationType.like
           ? SvgPicture.asset(
               AssetsConstants.likeFilledIcon,
-              // ignore: deprecated_member_use
-              color: Pallete.redColor,
+              colorFilter: const ColorFilter.mode(
+                Pallete.redColor,
+                BlendMode.srcIn,
+              ),
               height: 20,
             )
           : notification.notificationType == NotificationType.reroar
           ? SvgPicture.asset(
               AssetsConstants.retweetIcon,
-              // ignore: deprecated_member_use
-              color: Pallete.whiteColor,
+              colorFilter: const ColorFilter.mode(
+                Pallete.whiteColor,
+                BlendMode.srcIn,
+              ),
               height: 20,
             )
           : null,
-          title: Text(
-            notification.text
-          ),
+      title: Text(notification.text),
     );
   }
 }

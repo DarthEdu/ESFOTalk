@@ -1,18 +1,17 @@
-import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:esfotalk_app/theme/pallete.dart';
 
 class RoarIconButton extends StatelessWidget {
   final String pathName;
   final String text;
   final VoidCallback onTap;
-
   const RoarIconButton({
-    super.key,
-    required this .pathName,
+    Key? key,
+    required this.pathName,
     required this.text,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -20,21 +19,19 @@ class RoarIconButton extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: [
-          // ignore: deprecated_member_use
-          SvgPicture.asset(pathName, color: Pallete.greyColor),
-          Container(
-            margin: const EdgeInsets.only(left: 2),
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: Pallete.greyColor,
-                fontSize: 16,
-              ),
+          SvgPicture.asset(
+            pathName,
+            colorFilter: const ColorFilter.mode(
+              Pallete.greyColor,
+              BlendMode.srcIn,
             ),
+          ),
+          Container(
+            margin: const EdgeInsets.all(6),
+            child: Text(text, style: const TextStyle(fontSize: 16)),
           ),
         ],
       ),
-      
     );
   }
 }

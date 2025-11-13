@@ -1,5 +1,5 @@
-import 'package:esfotalk_app/theme/pallete.dart';
 import 'package:flutter/material.dart';
+import 'package:esfotalk_app/theme/pallete.dart';
 
 class AppTheme {
   static ThemeData theme = ThemeData.dark().copyWith(

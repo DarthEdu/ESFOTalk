@@ -19,27 +19,30 @@ class StorageAPI {
   Future<List<String>> uploadImage(List<File> files) async {
     List<String> imageLinks = [];
     for (final file in files) {
-      // 1. Comprimir y redimensionar la imagen
+      // 1. Intentar comprimir y redimensionar la imagen
+      final targetPath =
+          '${(await getTemporaryDirectory()).path}/${file.path.split('/').last}';
       final compressedFile = await FlutterImageCompress.compressAndGetFile(
         file.absolute.path,
-        '${(await getTemporaryDirectory()).path}/${file.path.split('/').last}',
+        targetPath,
         minWidth: 1080,
         minHeight: 1080,
         quality: 85,
       );
 
-      if (compressedFile == null) {
-        continue; // Si la compresión falla, se omite el archivo
-      }
+      // 2. Preparar bytes y nombre de archivo (fallback al original si falla la compresión)
+      final Uint8List bytes = await File(
+        compressedFile?.path ?? file.path,
+      ).readAsBytes();
+      final String filename = (compressedFile?.path ?? file.path)
+          .split('/')
+          .last;
 
-      // 2. Subir el archivo comprimido
+      // 3. Subir archivo
       final uploadedImage = await _storage.createFile(
         bucketId: AppwriteConstants.imagesBucket,
         fileId: ID.unique(),
-        file: InputFile.fromBytes(
-          bytes: await File(compressedFile.path).readAsBytes(),
-          filename: compressedFile.path.split('/').last,
-        ),
+        file: InputFile.fromBytes(bytes: bytes, filename: filename),
       );
       imageLinks.add(AppwriteConstants.imageUrl(uploadedImage.$id));
     }

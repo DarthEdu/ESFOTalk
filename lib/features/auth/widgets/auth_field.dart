@@ -5,12 +5,18 @@ class AuthField extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
   final bool isPassword;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onSubmitted;
 
   const AuthField({
     super.key,
     required this.controller,
     required this.hintText,
     this.isPassword = false,
+    this.keyboardType,
+    this.textInputAction,
+    this.onSubmitted,
   });
 
   @override
@@ -25,6 +31,9 @@ class _AuthFieldState extends State<AuthField> {
     return TextFormField(
       controller: widget.controller,
       obscureText: widget.isPassword ? _obscureText : false,
+      keyboardType: widget.keyboardType,
+      textInputAction: widget.textInputAction,
+      onFieldSubmitted: widget.onSubmitted,
       decoration: InputDecoration(
         suffixIcon: widget.isPassword
             ? IconButton(

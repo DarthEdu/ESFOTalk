@@ -20,7 +20,11 @@ abstract class IUserApi {
   Future<Document> getUserData(String uid);
   Future<List<Document>> searchUserByName(String name);
   FutureEitherVoid updateUserData({required UserModel userModel});
-  Stream<RealtimeMessage> getUserDataStream(String uid); // Cambio aquí
+  Stream<RealtimeMessage> getUserDataStream(
+    String uid,
+  ); // Stream para un perfil específico
+  Stream<RealtimeMessage>
+  getLatestUserProfileData(); // Stream de toda la colección (alineado a referencia)
   FutureEitherVoid followUser(UserModel user);
   FutureEitherVoid addToFollowing(UserModel user);
 }
@@ -94,9 +98,15 @@ class UserAPI implements IUserApi {
 
   @override
   Stream<RealtimeMessage> getUserDataStream(String uid) {
-    // Cambio aquí
     return _realtime.subscribe([
       'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.usersTable}.documents.$uid',
+    ]).stream;
+  }
+
+  @override
+  Stream<RealtimeMessage> getLatestUserProfileData() {
+    return _realtime.subscribe([
+      'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.usersTable}.documents',
     ]).stream;
   }
 

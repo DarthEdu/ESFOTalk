@@ -2,6 +2,7 @@
 import 'package:esfotalk_app/common/common.dart';
 import 'package:esfotalk_app/constants/ui_constants.dart';
 import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
+import 'package:esfotalk_app/core/utils.dart';
 import 'package:esfotalk_app/features/auth/view/login_view.dart';
 import 'package:esfotalk_app/features/auth/widgets/auth_field.dart';
 import 'package:esfotalk_app/theme/pallete.dart';
@@ -18,113 +19,103 @@ class SignUpView extends ConsumerStatefulWidget {
 }
 
 class _SignUpViewState extends ConsumerState<SignUpView> {
-  final appbar = UiConstants.appBar();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final appBar = UiConstants.appBar();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  void onSignUp() {
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
+  void _onSignUp() {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
+    String? error;
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Por favor, ingresa tu correo electrónico.')),
-      );
-      return;
+      error = 'Ingresa tu correo electrónico.';
+    } else if (!email.contains('@') || !email.contains('.')) {
+      error = 'Ingresa un correo electrónico válido.';
+    } else if (password.isEmpty) {
+      error = 'Ingresa tu contraseña.';
+    } else if (password.length < 6) {
+      error = 'La contraseña debe tener al menos 6 caracteres.';
     }
-    if (!email.contains('@') || !email.contains('.')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Por favor, ingresa un correo electrónico válido.')),
-      );
-      return;
-    }
-    if (password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, ingresa tu contraseña.')),
-      );
-      return;
-    }
-    if (password.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('La contraseña debe tener al menos 6 caracteres.')),
-      );
+
+    if (error != null) {
+      showSnackBar(context, error, type: SnackBarType.error);
       return;
     }
 
-    ref.read(authControllerProvider.notifier).signUp(
-      email: email,
-      password: password,
-      context: context,
-    );
+    ref
+        .read(authControllerProvider.notifier)
+        .signUp(email: email, password: password, context: context);
   }
 
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authControllerProvider);
     return Scaffold(
-      appBar: appbar,
+      appBar: appBar,
       body: isLoading
           ? const Loader()
           : Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                AuthField(
-                  controller: emailController,
-                  hintText: 'Correo Electrónico',
-                ),
-                const SizedBox(height: 25),
-                AuthField(
-                  controller: passwordController,
-                  hintText: 'Contraseña',
-                  isPassword: true,
-                ),
-                const SizedBox(height: 40),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: RoundedSmallButton(
-                    onTap: onSignUp,
-                    label: 'Registrarse',
-                  ),
-                ),
-                const SizedBox(height: 40),
-                RichText(
-                  text: TextSpan(
-                    text: "¿Ya tienes una cuenta?",
-                    style: const TextStyle(
-                        fontSize: 16, color: Pallete.whiteColor),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
                     children: [
-                      TextSpan(
-                        text: ' Inicia Sesión',
-                        style: TextStyle(
-                          color: Pallete.vinoColor,
-                          fontSize: 16,
+                      AuthField(
+                        controller: _emailController,
+                        hintText: 'Correo electrónico',
+                      ),
+                      const SizedBox(height: 25),
+                      AuthField(
+                        controller: _passwordController,
+                        hintText: 'Contraseña',
+                        isPassword: true,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _onSignUp(),
+                      ),
+                      const SizedBox(height: 40),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: RoundedSmallButton(
+                          onTap: _onSignUp,
+                          label: 'Registrarse',
                         ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            Navigator.push(context, LoginView.route());
-                          },
+                      ),
+                      const SizedBox(height: 40),
+                      RichText(
+                        text: TextSpan(
+                          text: "¿Ya tienes una cuenta?",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Pallete.whiteColor,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: ' Inicia Sesión',
+                              style: TextStyle(
+                                color: Pallete.vinoColor,
+                                fontSize: 16,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.push(context, LoginView.route());
+                                },
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }

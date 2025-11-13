@@ -39,18 +39,12 @@ class RoarAPI implements IRoarApi {
   FutureEither<Document> shareRoar(Roar roar) async {
     try {
       final payload = roar.toMap();
-      print('🔵 [DEBUG] shareRoar - Payload a enviar: $payload');
-      print(
-        '🔵 [DEBUG] shareRoar - DB: ${AppwriteConstants.databaseId}, Collection: ${AppwriteConstants.roarTable}',
-      );
-
-      // ignore: deprecated_member_use
+      // TODO: Migrar a TablesDB.createRow (API nueva) cuando se actualice Appwrite SDK.
       final document = await _databases.createDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.roarTable,
         documentId: roar.id.isEmpty ? ID.unique() : roar.id,
         data: payload,
-        // Establece permisos explícitos para asegurar visibilidad en el feed
         permissions: [
           Permission.read(Role.users()),
           Permission.write(Role.user(roar.uid)),
@@ -58,67 +52,26 @@ class RoarAPI implements IRoarApi {
           Permission.delete(Role.user(roar.uid)),
         ],
       );
-
-      print('✅ [DEBUG] shareRoar - Documento creado con ID: ${document.$id}');
-      // Verificación inmediata de lectura para detectar problemas de permisos cuando no hay hashtags
-      try {
-        // ignore: deprecated_member_use
-        final fetched = await _databases.getDocument(
-          databaseId: AppwriteConstants.databaseId,
-          collectionId: AppwriteConstants.roarTable,
-          documentId: document.$id,
-        );
-        print('🔍 [DEBUG] shareRoar - Lectura inmediata OK (permiso READ)');
-        if ((fetched.data['hashtags'] is List) &&
-            (fetched.data['hashtags'] as List).isEmpty) {
-          print(
-            'ℹ️  [DEBUG] shareRoar - Documento sin hashtags leído correctamente.',
-          );
-        }
-      } on AppwriteException catch (readErr) {
-        print(
-          '🚫 [DEBUG] shareRoar - No se pudo leer inmediatamente tras crear. Posible configuración de permisos dependiente de hashtags. Detalle: ${readErr.message}',
-        );
-      }
       return right(document);
     } on AppwriteException catch (e, st) {
-      print(
-        '❌ [DEBUG] shareRoar - AppwriteException: ${e.message}, Code: ${e.code}, Type: ${e.type}',
-      );
       return left(Failure(e.message ?? 'Some unexpected error occurred', st));
     } catch (e, st) {
-      print('❌ [DEBUG] shareRoar - Error genérico: $e');
       return left(Failure(e.toString(), st));
     }
   }
 
   @override
   Future<List<Document>> getRoars() async {
-    // Forzamos el ordenamiento por atributo del sistema $createdAt para evitar depender del schema
-    // Usamos cadena cruda para no interpolar accidentalmente $createdAt
-    print('🔵 [DEBUG] getRoars - Listando por \$createdAt desc, limit 100');
     try {
-      // ignore: deprecated_member_use
       final documents = await _databases.listDocuments(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.roarTable,
         queries: [Query.orderDesc(r'$createdAt'), Query.limit(100)],
       );
-      print('✅ [DEBUG] getRoars - Total: ${documents.total}');
-      if (documents.total == 0) {
-        print(
-          '⚠️  [DEBUG] getRoars - No hay documentos. ¿Se están creando correctamente? Revisa permisos y collectionId.',
-        );
-      } else {
-        final sample = documents.documents.take(3).map((d) => d.$id).toList();
-        print('📄 [DEBUG] getRoars - Primeros IDs: $sample');
-      }
       return documents.documents;
-    } on AppwriteException catch (e) {
-      print('❌ [DEBUG] getRoars - AppwriteException: ${e.message} (${e.code})');
+    } on AppwriteException {
       return [];
-    } catch (e) {
-      print('❌ [DEBUG] getRoars - Error inesperado: $e');
+    } catch (_) {
       return [];
     }
   }
@@ -133,7 +86,6 @@ class RoarAPI implements IRoarApi {
   @override
   FutureEither<Document> likeRoar(Roar roar) async {
     try {
-      // ignore: deprecated_member_use
       final document = await _databases.updateDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.roarTable,
@@ -151,7 +103,6 @@ class RoarAPI implements IRoarApi {
   @override
   FutureEither<Document> updateReshareCount(Roar roar) async {
     try {
-      // ignore: deprecated_member_use
       final document = await _databases.updateDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.roarTable,
@@ -168,7 +119,6 @@ class RoarAPI implements IRoarApi {
 
   @override
   Future<List<Document>> getRepliesToRoar(String roarId) async {
-    // ignore: deprecated_member_use
     final document = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.roarTable,
@@ -183,7 +133,6 @@ class RoarAPI implements IRoarApi {
 
   @override
   Future<Document> getRoarById(String id) async {
-    // ignore: deprecated_member_use
     return _databases.getDocument(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.roarTable,
@@ -193,7 +142,6 @@ class RoarAPI implements IRoarApi {
 
   @override
   Future<List<Document>> getUserRoars(String uid) async {
-    // ignore: deprecated_member_use
     final documents = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.roarTable,
@@ -208,7 +156,6 @@ class RoarAPI implements IRoarApi {
 
   @override
   Future<List<Document>> getRoarsByHashtag(String hashtag) async {
-    // ignore: deprecated_member_use
     final documents = await _databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.roarTable,

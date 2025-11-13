@@ -1,7 +1,11 @@
 {
     "version": "0.2.0",
     "configurations": [
-        
-        
+        {
+            "name": "esfotalk_app (Flutter)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main.dart"
+        }
     ]
 }

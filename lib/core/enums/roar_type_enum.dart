@@ -4,17 +4,18 @@ enum RoarType {
 
   final String type;
   const RoarType(this.type);
-}
 
-extension ConvertRoar on String {
-  RoarType toRoarTypeEnum() {
-    switch (this) {
-      case 'text':
-        return RoarType.text;
+  static RoarType fromString(String value) {
+    switch (value.toLowerCase()) {
       case 'image':
         return RoarType.image;
+      case 'text':
       default:
         return RoarType.text;
     }
   }
+}
+
+extension RoarTypeParsing on String {
+  RoarType toRoarTypeEnum() => RoarType.fromString(this);
 }

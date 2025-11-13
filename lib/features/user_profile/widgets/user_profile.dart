@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:esfotalk_app/common/error_page.dart';
 import 'package:esfotalk_app/common/loading_page.dart';
 import 'package:esfotalk_app/constants/assets_constant.dart';
@@ -8,9 +11,6 @@ import 'package:esfotalk_app/features/user_profile/view/edit_profile_view.dart';
 import 'package:esfotalk_app/features/user_profile/widgets/follow_count.dart';
 import 'package:esfotalk_app/models/user_model.dart';
 import 'package:esfotalk_app/theme/theme.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
 class UserProfile extends ConsumerWidget {
   final UserModel user;
@@ -19,6 +19,7 @@ class UserProfile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserDetailsProvider).value;
+
     return currentUser == null
         ? const Loader()
         : NestedScrollView(
@@ -66,10 +67,7 @@ class UserProfile extends ConsumerWidget {
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
-                              side: const BorderSide(
-                                color: Pallete.whiteColor,
-                                width: 1.5,
-                              ),
+                              side: const BorderSide(color: Pallete.whiteColor),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 25),
                           ),
@@ -77,8 +75,8 @@ class UserProfile extends ConsumerWidget {
                             currentUser.uid == user.uid
                                 ? 'Editar Perfil'
                                 : currentUser.following.contains(user.uid)
-                                    ? 'Dejar de seguir'
-                                    : 'Seguir',
+                                ? 'Dejar de seguir'
+                                : 'Seguir',
                             style: const TextStyle(color: Pallete.whiteColor),
                           ),
                         ),
@@ -112,16 +110,10 @@ class UserProfile extends ConsumerWidget {
                         '@${user.name}',
                         style: const TextStyle(
                           fontSize: 17,
-                          fontWeight: FontWeight.bold,
                           color: Pallete.greyColor,
                         ),
                       ),
-                      Text(
-                        user.bio,
-                        style: const TextStyle(
-                          fontSize: 17,
-                        ),
-                      ),
+                      Text(user.bio, style: const TextStyle(fontSize: 17)),
                       const SizedBox(height: 10),
                       Row(
                         children: [
@@ -143,7 +135,9 @@ class UserProfile extends ConsumerWidget {
                 ),
               ];
             },
-            body: ref.watch(getUserRoarsProvider(user.uid)).when(
+            body: ref
+                .watch(getUserRoarsProvider(user.uid))
+                .when(
                   data: (roars) {
                     return ListView.builder(
                       itemCount: roars.length,
@@ -153,8 +147,7 @@ class UserProfile extends ConsumerWidget {
                       },
                     );
                   },
-                  error: (error, stackTrace) =>
-                      ErrorText(error: error.toString()),
+                  error: (error, st) => ErrorText(error: error.toString()),
                   loading: () => const Loader(),
                 ),
           );

@@ -24,59 +24,147 @@ final roarControllerProvider = StateNotifierProvider<RoarController, bool>((
 });
 
 // Proveedor de stream para la lista de todos los roars
-final getRoarsProvider = StreamProvider((ref) async* {
-  final roarController = ref.watch(roarControllerProvider.notifier);
-  // 1. Carga inicial de roars
-  final initialRoars = await roarController.getRoars();
-  yield initialRoars;
+final getRoarsProvider = StreamProvider.autoDispose((ref) async* {
+  final roarAPI = ref.watch(roarAPIProvider);
 
-  // 2. Escucha los cambios en tiempo real y vuelve a cargar la lista
-  final stream = ref.watch(roarAPIProvider).getLatestRoars();
-  // ignore: unused_local_variable
-  await for (final event in stream) {
-    final updatedRoars = await roarController.getRoars();
-    yield updatedRoars;
+  // 1. Yield empty list immediately to avoid blocking UI
+  List<Roar> currentRoars = [];
+  yield currentRoars;
+
+  // 2. Load initial roars in background
+  try {
+    final documents = await roarAPI.getRoars();
+    currentRoars = documents
+        .map((doc) => Roar.fromMap({...doc.data, 'id': doc.$id}))
+        .toList();
+    yield currentRoars;
+  } catch (e) {
+    // If initial load fails, continue with empty list
   }
-});
 
-// Proveedor de stream para las respuestas a un roar específico
-final getRepliesToRoarsProvider = StreamProvider.family<List<Roar>, String>((
-  ref,
-  roarId,
-) async* {
-  final roarController = ref.watch(roarControllerProvider.notifier);
-  // 1. Carga inicial de respuestas
-  final initialReplies = await roarController.getRepliesToRoar(roarId);
-  yield initialReplies;
+  // 3. Listen to realtime changes and update only affected roar
+  final stream = roarAPI.getLatestRoars();
 
-  // 2. Escucha los cambios y vuelve a cargar si son relevantes
-  final stream = ref.watch(roarAPIProvider).getLatestRoars();
   await for (final event in stream) {
-    // Evita errores si el payload no coincide con el modelo esperado
     try {
-      final payload = Roar.fromMap(event.payload);
-      // Vuelve a cargar solo si el cambio es una respuesta a este roar
-      if (payload.repliedTo == roarId) {
-        final updatedReplies = await roarController.getRepliesToRoar(roarId);
-        yield updatedReplies;
+      // Verify event has correct structure
+      if (event.events.isEmpty || event.payload.isEmpty) continue;
+
+      final eventType = event.events.first.split('.').last;
+      final payloadId = event.payload['\$id'];
+      if (payloadId == null) continue;
+
+      if (eventType == 'create') {
+        // New roar: add to beginning
+        final newRoar = Roar.fromMap({...event.payload, 'id': payloadId});
+        currentRoars = [newRoar, ...currentRoars];
+        yield currentRoars;
+      } else if (eventType == 'update') {
+        // Updated roar: replace in list
+        final updatedRoar = Roar.fromMap({...event.payload, 'id': payloadId});
+        final index = currentRoars.indexWhere((r) => r.id == updatedRoar.id);
+        if (index != -1) {
+          currentRoars = [
+            ...currentRoars.sublist(0, index),
+            updatedRoar,
+            ...currentRoars.sublist(index + 1),
+          ];
+          yield currentRoars;
+        }
+      } else if (eventType == 'delete') {
+        // Deleted roar: remove from list
+        currentRoars = currentRoars.where((r) => r.id != payloadId).toList();
+        yield currentRoars;
       }
-    } catch (_) {
-      // Ignorar eventos que no correspondan a Roar
+    } catch (e) {
+      // Ignore invalid events
+      continue;
     }
   }
 });
 
-final getLatestRoarProvider = StreamProvider((ref) {
+// Proveedor de stream para las respuestas a un roar específico
+final getRepliesToRoarsProvider = StreamProvider.autoDispose
+    .family<List<Roar>, String>((ref, roarId) async* {
+      final roarAPI = ref.watch(roarAPIProvider);
+
+      // 1. Yield empty list immediately to avoid blocking UI
+      List<Roar> currentReplies = [];
+      yield currentReplies;
+
+      // 2. Load initial replies in background
+      try {
+        final documents = await roarAPI.getRepliesToRoar(roarId);
+        currentReplies = documents
+            .map((doc) => Roar.fromMap({...doc.data, 'id': doc.$id}))
+            .toList();
+        yield currentReplies;
+      } catch (e) {
+        // If initial load fails, continue with empty list
+      }
+
+      // 3. Listen to changes and update only if relevant
+      final stream = roarAPI.getLatestRoars();
+
+      await for (final event in stream) {
+        try {
+          // Verify event has correct structure
+          if (event.events.isEmpty || event.payload.isEmpty) continue;
+
+          final eventType = event.events.first.split('.').last;
+          final payloadId = event.payload['\$id'];
+          if (payloadId == null) continue;
+
+          final payload = Roar.fromMap({...event.payload, 'id': payloadId});
+
+          // Only process if it's a reply to this roar
+          if (payload.repliedTo == roarId) {
+            if (eventType == 'create') {
+              // New reply: add to beginning
+              currentReplies = [payload, ...currentReplies];
+              yield currentReplies;
+            } else if (eventType == 'update') {
+              // Updated reply: replace in list
+              final index = currentReplies.indexWhere(
+                (r) => r.id == payload.id,
+              );
+              if (index != -1) {
+                currentReplies = [
+                  ...currentReplies.sublist(0, index),
+                  payload,
+                  ...currentReplies.sublist(index + 1),
+                ];
+                yield currentReplies;
+              }
+            } else if (eventType == 'delete') {
+              // Deleted reply: remove from list
+              currentReplies = currentReplies
+                  .where((r) => r.id != payload.id)
+                  .toList();
+              yield currentReplies;
+            }
+          }
+        } catch (e) {
+          // Ignore events that can't be parsed
+          continue;
+        }
+      }
+    });
+
+final getLatestRoarProvider = StreamProvider.autoDispose((ref) {
   final roarAPI = ref.watch(roarAPIProvider);
   return roarAPI.getLatestRoars();
 });
 
-final getRoarByIdProvider = FutureProvider.family((ref, String id) {
+final getRoarByIdProvider = FutureProvider.autoDispose.family((ref, String id) {
   final roarController = ref.watch(roarControllerProvider.notifier);
   return roarController.getRoarById(id);
 });
 
-final getRoarsByHashtagProvider = FutureProvider.family((ref, String hashtag) {
+final getRoarsByHashtagProvider = FutureProvider.autoDispose.family((
+  ref,
+  String hashtag,
+) {
   final roarController = ref.watch(roarControllerProvider.notifier);
   return roarController.getRoarsByHashtag(hashtag);
 });
@@ -92,8 +180,8 @@ class RoarController extends StateNotifier<bool> {
     required RoarAPI roarAPI,
     required StorageAPI storageAPI,
     required NotificationController notificationController,
-  }) : _roarAPI = roarAPI,
-       _ref = ref,
+  }) : _ref = ref,
+       _roarAPI = roarAPI,
        _storageAPI = storageAPI,
        _notificationController = notificationController,
        super(false);
@@ -141,23 +229,33 @@ class RoarController extends StateNotifier<bool> {
       reshareCount: roar.reshareCount + 1,
     );
     final res = await _roarAPI.updateReshareCount(roar);
-    res.fold((l) => showSnackBar(context, l.message), (r) async {
-      roar = roar.copyWith(
-        id: ID.unique(),
-        reshareCount: 0,
-        roaredAt: DateTime.now(),
-      );
-      final res2 = await _roarAPI.shareRoar(roar);
-      res2.fold((l) => showSnackBar(context, l.message), (r) {
-        _notificationController.createNotification(
-          text: '¡${currentUser.name} compartió tu rugido!',
-          postId: roar.id,
-          uid: roar.uid,
-          notificationType: NotificationType.reroar,
+    res.fold(
+      (l) => showSnackBar(context, l.message, type: SnackBarType.error),
+      (r) async {
+        roar = roar.copyWith(
+          id: ID.unique(),
+          reshareCount: 0,
+          roaredAt: DateTime.now(),
         );
-        showSnackBar(context, 'Rugido compartido con éxito');
-      });
-    });
+        final res2 = await _roarAPI.shareRoar(roar);
+        res2.fold(
+          (l) => showSnackBar(context, l.message, type: SnackBarType.error),
+          (r) {
+            _notificationController.createNotification(
+              text: '¡${currentUser.name} compartió tu rugido!',
+              postId: roar.id,
+              uid: roar.uid,
+              notificationType: NotificationType.reroar,
+            );
+            showSnackBar(
+              context,
+              'Rugido compartido con éxito',
+              type: SnackBarType.success,
+            );
+          },
+        );
+      },
+    );
   }
 
   void shareRoar({
@@ -168,7 +266,11 @@ class RoarController extends StateNotifier<bool> {
     required String repliedToUserId,
   }) {
     if (text.isEmpty) {
-      showSnackBar(context, 'Por favor ingresa un texto para el rugido.');
+      showSnackBar(
+        context,
+        'Por favor ingresa un texto para el rugido.',
+        type: SnackBarType.warning,
+      );
       return;
     }
 
@@ -222,13 +324,21 @@ class RoarController extends StateNotifier<bool> {
     final userAsync = _ref.read(currentUserDetailsProvider);
     final user = userAsync.value;
     if (user == null) {
-      showSnackBar(context, 'No se pudo obtener tu usuario. Intenta de nuevo.');
+      showSnackBar(
+        context,
+        'No se pudo obtener tu usuario. Intenta de nuevo.',
+        type: SnackBarType.error,
+      );
       state = false;
       return;
     }
     final imageLinks = await _storageAPI.uploadImage(images);
     if (imageLinks.isEmpty) {
-      showSnackBar(context, 'No se pudo subir la imagen. Intenta de nuevo.');
+      showSnackBar(
+        context,
+        'No se pudo subir la imagen. Intenta de nuevo.',
+        type: SnackBarType.error,
+      );
       state = false;
       return;
     }
@@ -250,19 +360,32 @@ class RoarController extends StateNotifier<bool> {
     );
     final res = await _roarAPI.shareRoar(roar);
 
-    res.fold((l) => showSnackBar(context, l.message), (r) {
-      if (repliedTo.isNotEmpty) {
-        _notificationController.createNotification(
-          text: '¡${user.name} ha contestado tu rugido!',
-          postId: r.$id,
-          uid: repliedToUserId,
-          notificationType: NotificationType.reply,
-        );
-      }
-      if (repliedTo.isEmpty) {
-        showSnackBar(context, '¡Rugido publicado!');
-      }
-    });
+    res.fold(
+      (l) => showSnackBar(context, l.message, type: SnackBarType.error),
+      (r) {
+        if (repliedTo.isNotEmpty) {
+          _notificationController.createNotification(
+            text: '¡${user.name} ha contestado tu rugido!',
+            postId: r.$id,
+            uid: repliedToUserId,
+            notificationType: NotificationType.reply,
+          );
+        }
+        if (repliedTo.isEmpty) {
+          showSnackBar(
+            context,
+            '¡Rugido publicado!',
+            type: SnackBarType.success,
+          );
+          // Cerrar pantalla de creación solo si no es una respuesta
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+          });
+        }
+      },
+    );
     state = false;
   }
 
@@ -284,7 +407,11 @@ class RoarController extends StateNotifier<bool> {
     final userAsync = _ref.read(currentUserDetailsProvider);
     final user = userAsync.value;
     if (user == null) {
-      showSnackBar(context, 'No se pudo obtener tu usuario. Intenta de nuevo.');
+      showSnackBar(
+        context,
+        'No se pudo obtener tu usuario. Intenta de nuevo.',
+        type: SnackBarType.error,
+      );
       state = false;
       return;
     }
@@ -304,19 +431,32 @@ class RoarController extends StateNotifier<bool> {
       repliedTo: repliedTo,
     );
     final res = await _roarAPI.shareRoar(roar);
-    res.fold((l) => showSnackBar(context, l.message), (r) {
-      if (repliedTo.isNotEmpty) {
-        _notificationController.createNotification(
-          text: '¡${user.name} ha contestado tu rugido!',
-          postId: r.$id,
-          uid: repliedToUserId,
-          notificationType: NotificationType.reply,
-        );
-      }
-      if (repliedTo.isEmpty) {
-        showSnackBar(context, '¡Rugido publicado!');
-      }
-    });
+    res.fold(
+      (l) => showSnackBar(context, l.message, type: SnackBarType.error),
+      (r) {
+        if (repliedTo.isNotEmpty) {
+          _notificationController.createNotification(
+            text: '¡${user.name} ha contestado tu rugido!',
+            postId: r.$id,
+            uid: repliedToUserId,
+            notificationType: NotificationType.reply,
+          );
+        }
+        if (repliedTo.isEmpty) {
+          showSnackBar(
+            context,
+            '¡Rugido publicado!',
+            type: SnackBarType.success,
+          );
+          // Cerrar pantalla de creación solo si no es una respuesta
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+          });
+        }
+      },
+    );
     state = false;
   }
 

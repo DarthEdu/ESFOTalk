@@ -48,18 +48,16 @@ class UserModel {
   }
 
   Map<String, dynamic> toMap() {
-    final result = <String, dynamic>{};
-
-    result.addAll({'email': email});
-    result.addAll({'name': name});
-    result.addAll({'followers': followers});
-    result.addAll({'following': following});
-    result.addAll({'profilePic': profilePic});
-    result.addAll({'bannerPic': bannerPic});
-    result.addAll({'bio': bio});
-    result.addAll({'isDragonred': isDragonred});
-
-    return result;
+    return <String, dynamic>{
+      'email': email,
+      'name': name,
+      'followers': followers,
+      'following': following,
+      'profilePic': profilePic,
+      'bannerPic': bannerPic,
+      'bio': bio,
+      'isDragonred': isDragonred,
+    };
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map) {

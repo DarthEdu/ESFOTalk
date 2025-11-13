@@ -22,7 +22,9 @@ abstract class IAuthApi {
     required String password,
   });
 
-  FutureEither<User> currentUserAccount();
+  /// Obtiene la cuenta actual del usuario autenticado.
+  /// Devuelve `User` si hay sesión activa o `null` si no la hay o si ocurre un error.
+  Future<User?> currentUserAccount();
 
   /// Enviar email de verificación
   FutureEitherVoid sendVerificationEmail();
@@ -39,20 +41,17 @@ class AuthAPI implements IAuthApi {
   final Account _account;
   final Realtime _realtime;
   AuthAPI({required Account account, required Realtime realtime})
-      : _account = account,
-        _realtime = realtime;
+    : _account = account,
+      _realtime = realtime;
 
   @override
-  FutureEither<User> currentUserAccount() async {
+  Future<User?> currentUserAccount() async {
     try {
-      final user = await _account.get();
-      return right(user);
-    } on AppwriteException catch (e, stackTrace) {
-      return left(
-        Failure(e.message ?? 'Some unexpected error occurred', stackTrace),
-      );
-    } catch (e, stackTrace) {
-      return left(Failure(e.toString(), stackTrace));
+      return await _account.get();
+    } on AppwriteException {
+      return null;
+    } catch (_) {
+      return null;
     }
   }
 

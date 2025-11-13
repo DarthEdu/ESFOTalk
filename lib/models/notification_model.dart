@@ -58,10 +58,11 @@ class Notification {
   }
 
   @override
-  bool operator ==(covariant Notification other) {
+  bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other.text == text &&
+    return other is Notification &&
+        other.text == text &&
         other.postId == postId &&
         other.id == id &&
         other.uid == uid &&

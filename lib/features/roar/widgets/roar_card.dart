@@ -25,6 +25,7 @@ class RoarCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserDetailsProvider).value;
+
     return currentUser == null
         ? const SizedBox()
         : ref
@@ -60,15 +61,16 @@ class RoarCard extends ConsumerWidget {
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                //reroar
                                 children: [
                                   if (roar.reroaredBy.isNotEmpty)
                                     Row(
                                       children: [
                                         SvgPicture.asset(
                                           AssetsConstants.retweetIcon,
-                                          // ignore: deprecated_member_use
-                                          color: Pallete.greyColor,
+                                          colorFilter: const ColorFilter.mode(
+                                            Pallete.greyColor,
+                                            BlendMode.srcIn,
+                                          ),
                                           height: 20,
                                         ),
                                         const SizedBox(width: 2),
@@ -92,13 +94,15 @@ class RoarCard extends ConsumerWidget {
                                           user.name,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 17,
+                                            fontSize: 19,
                                           ),
                                         ),
                                       ),
                                       if (user.isDragonred)
                                         Padding(
-                                          padding: const EdgeInsets.only(right: 5.0),
+                                          padding: const EdgeInsets.only(
+                                            right: 5.0,
+                                          ),
                                           child: SvgPicture.asset(
                                             AssetsConstants.verifiedIcon,
                                           ),
@@ -106,8 +110,8 @@ class RoarCard extends ConsumerWidget {
                                       Text(
                                         '@${user.name} · ${timeago.format(roar.roaredAt, locale: 'en_short')}',
                                         style: const TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 15,
+                                          color: Pallete.greyColor,
+                                          fontSize: 17,
                                         ),
                                       ),
                                     ],
@@ -128,31 +132,29 @@ class RoarCard extends ConsumerWidget {
                                                 .value;
                                             return RichText(
                                               text: TextSpan(
-                                                text: 'Respondiendo a ',
+                                                text: 'Respondiendo a',
                                                 style: const TextStyle(
                                                   color: Pallete.greyColor,
-                                                  fontSize: 15,
+                                                  fontSize: 16,
                                                 ),
                                                 children: [
                                                   TextSpan(
                                                     text:
-                                                        '@${replyingToUser?.name}',
+                                                        ' @${replyingToUser?.name}',
                                                     style: const TextStyle(
-                                                      color: Pallete.whiteColor,
-                                                      fontSize: 15,
+                                                      color: Pallete.vinoColor,
+                                                      fontSize: 16,
                                                     ),
                                                   ),
                                                 ],
                                               ),
                                             );
                                           },
-                                          error: (error, stackTrace) =>
-                                              ErrorText(
-                                                error: error.toString(),
-                                              ),
+                                          error: (error, st) => ErrorText(
+                                            error: error.toString(),
+                                          ),
                                           loading: () => const SizedBox(),
                                         ),
-                                  // Texto del roar
                                   HashtagText(text: roar.text),
                                   if (roar.roarType == RoarType.image)
                                     CarouselImage(imageLinks: roar.imageLinks),
@@ -164,14 +166,15 @@ class RoarCard extends ConsumerWidget {
                                       link: 'https://${roar.link}',
                                     ),
                                   ],
-                                  // Aquí puedes agregar más widgets para mostrar interacciones como me gusta, comentarios, etc.
                                   Container(
-                                    margin: const EdgeInsets.only(top: 10),
+                                    margin: const EdgeInsets.only(
+                                      top: 10,
+                                      right: 20,
+                                    ),
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        // Aquí puedes agregar botones de interacción
                                         RoarIconButton(
                                           pathName: AssetsConstants.viewsIcon,
                                           text:
@@ -181,14 +184,12 @@ class RoarCard extends ConsumerWidget {
                                                   .toString(),
                                           onTap: () {},
                                         ),
-                                        // Aquí puedes agregar botones de interacción
                                         RoarIconButton(
                                           pathName: AssetsConstants.commentIcon,
                                           text: roar.commentIds.length
                                               .toString(),
                                           onTap: () {},
                                         ),
-                                        // Aquí puedes agregar botones de interacción
                                         RoarIconButton(
                                           pathName: AssetsConstants.retweetIcon,
                                           text: roar.reshareCount.toString(),
@@ -216,19 +217,28 @@ class RoarCard extends ConsumerWidget {
                                                 .likeRoar(roar, currentUser);
                                             return !isLiked;
                                           },
+                                          isLiked: roar.likes.contains(
+                                            currentUser.uid,
+                                          ),
                                           likeBuilder: (isLiked) {
                                             return isLiked
                                                 ? SvgPicture.asset(
                                                     AssetsConstants
                                                         .likeFilledIcon,
-                                                    // ignore: deprecated_member_use
-                                                    color: Pallete.redColor,
+                                                    colorFilter:
+                                                        const ColorFilter.mode(
+                                                          Pallete.redColor,
+                                                          BlendMode.srcIn,
+                                                        ),
                                                   )
                                                 : SvgPicture.asset(
                                                     AssetsConstants
                                                         .likeOutlinedIcon,
-                                                    // ignore: deprecated_member_use
-                                                    color: Pallete.greyColor,
+                                                    colorFilter:
+                                                        const ColorFilter.mode(
+                                                          Pallete.greyColor,
+                                                          BlendMode.srcIn,
+                                                        ),
                                                   );
                                           },
                                           likeCount: roar.likes.length,
@@ -251,7 +261,6 @@ class RoarCard extends ConsumerWidget {
                                                 );
                                               },
                                         ),
-                                        // Aquí puedes agregar botones de interacción
                                         IconButton(
                                           onPressed: () {},
                                           icon: const Icon(
@@ -269,7 +278,7 @@ class RoarCard extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        const Divider(color: Pallete.greyColor, thickness: 0.2),
+                        const Divider(color: Pallete.greyColor),
                       ],
                     ),
                   );

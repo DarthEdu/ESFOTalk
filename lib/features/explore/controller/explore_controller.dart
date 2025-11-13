@@ -2,28 +2,29 @@ import 'package:esfotalk_app/apis/user_api.dart';
 import 'package:esfotalk_app/models/user_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final exploreControllerProvider =
-    StateNotifierProvider<ExploreController, bool>((ref) {
+// Controlador ligero, no mantiene estado propio -> Provider simple.
+final exploreControllerProvider = Provider<ExploreController>((ref) {
   final userAPI = ref.watch(userAPIProvider);
   return ExploreController(userAPI: userAPI);
 });
 
 final searchUserProvider = FutureProvider.family<List<UserModel>, String>(
-  (ref, name) {
-    final exploreController = ref.watch(exploreControllerProvider.notifier);
-    return exploreController.searchUser(name);
-  },
+  (ref, name) => ref.watch(exploreControllerProvider).searchUser(name),
 );
 
-
-class ExploreController extends StateNotifier<bool> {
+class ExploreController {
   final UserAPI _userAPI;
-  ExploreController({required UserAPI userAPI})
-    : _userAPI = userAPI,
-      super(false);
+  ExploreController({required UserAPI userAPI}) : _userAPI = userAPI;
 
   Future<List<UserModel>> searchUser(String name) async {
-    final users = await _userAPI.searchUserByName(name);
-    return users.map((e) => UserModel.fromMap(e.data)).toList();
+    final query = name.trim();
+    if (query.isEmpty) return [];
+    try {
+      final users = await _userAPI.searchUserByName(query);
+      return users.map((e) => UserModel.fromMap(e.data)).toList();
+    } catch (_) {
+      // En caso de error en la búsqueda, devolvemos lista vacía para no romper la UI.
+      return [];
+    }
   }
 }

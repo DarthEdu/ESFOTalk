@@ -14,93 +14,38 @@ final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   return AuthController(
     authAPI: ref.watch(authAPIProvider),
     userAPI: ref.watch(userAPIProvider),
-    ref: ref,
   );
 });
 
-final authStateChangeProvider = StreamProvider((ref) {
-  final authAPI = ref.watch(authAPIProvider);
-  return authAPI.getAccountEvents();
-});
-
 final currentUserAccountProvider = FutureProvider((ref) {
-  ref.watch(authStateChangeProvider);
   final authController = ref.watch(authControllerProvider.notifier);
   return authController.currentUser();
 });
 
-// CORREGIDO: Ahora carga los datos iniciales y luego escucha los cambios.
-final userDetailsProvider = StreamProvider.family((ref, String uid) async* {
-  final userAPI = ref.watch(userAPIProvider);
-
-  // 1. Carga y emite los datos iniciales del usuario.
-  final document = await userAPI.getUserData(uid);
-  yield UserModel.fromMap(document.data);
-
-  // 2. Escucha y emite los cambios en tiempo real.
-  final stream = userAPI.getUserDataStream(uid);
-  await for (final realtimeEvent in stream) {
-    yield UserModel.fromMap(realtimeEvent.payload);
-  }
+final userDetailsProvider = FutureProvider.family((ref, String uid) {
+  final authController = ref.watch(authControllerProvider.notifier);
+  return authController.getUserData(uid);
 });
 
-final currentUserDetailsProvider = FutureProvider((ref) async {
-  final currentUserAccount = await ref.watch(currentUserAccountProvider.future);
-  if (currentUserAccount == null) {
+final currentUserDetailsProvider = FutureProvider((ref) {
+  final currentUserId = ref.watch(currentUserAccountProvider).value?.$id;
+  if (currentUserId == null) {
     return null;
   }
-  // Importante: no usar .future sobre un StreamProvider infinito; tomamos la foto inicial directamente.
-  final userAPI = ref.watch(userAPIProvider);
-  try {
-    final doc = await userAPI.getUserData(currentUserAccount.$id);
-    return UserModel.fromMap(doc.data);
-  } on Exception catch (e) {
-    // Si el documento de usuario no existe (porque se vació la tabla), intentar recrearlo rápido.
-    debugPrint(
-      '[DEBUG] currentUserDetailsProvider - usuario no encontrado, recreando: $e',
-    );
-    final fallback = UserModel(
-      name: getNameFromEmail(currentUserAccount.email),
-      email: currentUserAccount.email,
-      followers: const [],
-      following: const [],
-      profilePic: '',
-      bannerPic: '',
-      uid: currentUserAccount.$id,
-      bio: '',
-      isDragonred: false,
-    );
-    try {
-      await userAPI.saveUserData(userModel: fallback);
-      debugPrint('[DEBUG] currentUserDetailsProvider - usuario recreado');
-      return fallback;
-    } catch (e2) {
-      debugPrint(
-        '[DEBUG] currentUserDetailsProvider - fallo al recrear usuario: $e2',
-      );
-      return fallback; // Retorna el modelo básico para que la UI avance.
-    }
-  }
+  final userDetails = ref.watch(userDetailsProvider(currentUserId));
+  return userDetails.value;
 });
 
 class AuthController extends StateNotifier<bool> {
   final AuthAPI _authAPI;
   final UserAPI _userAPI;
-  final Ref _ref;
 
-  AuthController({
-    required AuthAPI authAPI,
-    required UserAPI userAPI,
-    required Ref ref,
-  }) : _authAPI = authAPI,
-       _userAPI = userAPI,
-       _ref = ref,
-       super(false);
+  AuthController({required AuthAPI authAPI, required UserAPI userAPI})
+    : _authAPI = authAPI,
+      _userAPI = userAPI,
+      super(false);
 
-  Future<User?> currentUser() async {
-    final res = await _authAPI.currentUserAccount();
-    return res.fold((l) => null, (r) => r);
-  }
+  Future<User?> currentUser() => _authAPI.currentUserAccount();
 
   void signUp({
     required String email,
@@ -148,14 +93,9 @@ class AuthController extends StateNotifier<bool> {
     state = true;
     final res = await _authAPI.login(email: email, password: password);
     state = false;
-    res.fold(
-      (l) => showSnackBar(context, l.message),
-      (r) => Navigator.pushAndRemoveUntil(
-        context,
-        HomeView.route(),
-        (route) => false,
-      ),
-    );
+    res.fold((l) => showSnackBar(context, l.message), (r) {
+      Navigator.push(context, HomeView.route());
+    });
   }
 
   Future<void> sendVerificationEmail(BuildContext context) async {

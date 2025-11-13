@@ -42,8 +42,8 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
           repliedTo: '',
           repliedToUserId: '',
         );
-    // Mantén la UX del repo guía: cerrar al publicar (el feed se actualiza por stream)
-    Navigator.pop(context);
+    // No cerrar inmediatamente - dejar que el usuario vea el resultado
+    // El usuario puede cerrar manualmente con el botón X
   }
 
   void onPickImages() async {
@@ -75,12 +75,10 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
       body: isLoading || currentUser == null
           ? const Loader()
           : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
+              child: SingleChildScrollView(
                 child: Column(
                   children: [
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CircleAvatar(
                           backgroundImage: NetworkImage(currentUser.profilePic),

@@ -14,14 +14,19 @@ class ExploreView extends ConsumerStatefulWidget {
 }
 
 class _ExploreViewState extends ConsumerState<ExploreView> {
-  final searchController = TextEditingController();
-  // Se elimina 'isShowUsers' y se reemplaza por un término de búsqueda.
+  final _searchController = TextEditingController();
   String _searchTerm = '';
 
   @override
   void dispose() {
+    _searchController.dispose();
     super.dispose();
-    searchController.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {
+      _searchTerm = value.trim();
+    });
   }
 
   @override
@@ -35,45 +40,53 @@ class _ExploreViewState extends ConsumerState<ExploreView> {
         title: SizedBox(
           height: 50,
           child: TextField(
-            controller: searchController,
-            onSubmitted: (value) {
-              setState(() {
-                _searchTerm = value;
-              });
-            },
+            controller: _searchController,
+            onChanged: _onSearchChanged,
+            onSubmitted: _onSearchChanged,
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.all(10).copyWith(left: 20),
               fillColor: Pallete.searchBarColor,
               filled: true,
               enabledBorder: appBarTextFieldBorder,
               focusedBorder: appBarTextFieldBorder,
-              hintText: 'Buscar en ESFOTalk',
+              hintText: 'Buscar usuarios en ESFOTalk',
+              prefixIcon: const Icon(Icons.search, color: Pallete.greyColor),
+              suffixIcon: _searchTerm.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, color: Pallete.greyColor),
+                      onPressed: () {
+                        _searchController.clear();
+                        _onSearchChanged('');
+                      },
+                    )
+                  : null,
             ),
           ),
         ),
       ),
       body: _searchTerm.isEmpty
-          ? const Center(
-              child: Text('Busca usuarios por su nombre de perfil.'),
-            )
-          : ref.watch(searchUserProvider(_searchTerm)).when(
-                data: (users) {
-                  if (users.isEmpty) {
-                    return const Center(
-                      child: Text('No se encontraron usuarios.'),
+          ? const Center(child: Text('Busca usuarios por su nombre de perfil.'))
+          : ref
+                .watch(searchUserProvider(_searchTerm))
+                .when(
+                  data: (users) {
+                    if (users.isEmpty) {
+                      return const Center(
+                        child: Text('No se encontraron usuarios.'),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: users.length,
+                      itemBuilder: (context, index) {
+                        final user = users[index];
+                        return SearchTile(userModel: user);
+                      },
                     );
-                  }
-                  return ListView.builder(
-                    itemCount: users.length,
-                    itemBuilder: (context, index) {
-                      final user = users[index];
-                      return SearchTile(userModel: user);
-                    },
-                  );
-                },
-                error: (error, stackTrace) => ErrorText(error: error.toString()),
-                loading: () => const Loader(),
-              ),
+                  },
+                  error: (error, stackTrace) =>
+                      ErrorText(error: error.toString()),
+                  loading: () => const Loader(),
+                ),
     );
   }
 }
