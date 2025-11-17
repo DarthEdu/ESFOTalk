@@ -17,7 +17,24 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   int _page = 0;
-  final appBar = UiConstants.appBar();
+  AppBar _homeAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: Pallete.backgroundColor,
+      centerTitle: true,
+      title: SvgPicture.asset(
+        AssetsConstants.dragonLogo,
+        colorFilter: const ColorFilter.mode(Pallete.vinoColor, BlendMode.srcIn),
+        height: 30,
+      ),
+      automaticallyImplyLeading: false,
+      leading: Builder(
+        builder: (ctx) => IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () => Scaffold.of(ctx).openDrawer(),
+        ),
+      ),
+    );
+  }
 
   void onPageChange(int index) {
     setState(() {
@@ -32,12 +49,14 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _page == 0 ? appBar : null,
+      appBar: _page == 0 ? _homeAppBar(context) : null,
       body: IndexedStack(index: _page, children: UiConstants.bottomTabBarPages),
-      floatingActionButton: FloatingActionButton(
-        onPressed: onCreateRoar,
-        child: const Icon(Icons.add, color: Pallete.whiteColor, size: 28),
-      ),
+      floatingActionButton: _page == 0
+          ? FloatingActionButton(
+              onPressed: onCreateRoar,
+              child: const Icon(Icons.add, color: Pallete.whiteColor, size: 28),
+            )
+          : null,
       drawer: const SideDrawer(),
       bottomNavigationBar: CupertinoTabBar(
         currentIndex: _page,
