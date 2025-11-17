@@ -34,6 +34,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
     // Invalidar providers antes de login para limpiar caché
     ref.invalidate(currentUserAccountProvider);
     ref.invalidate(currentUserDetailsProvider);
+    ref.invalidate(currentUserDetailsStreamProvider);
 
     ref
         .read(authControllerProvider.notifier)

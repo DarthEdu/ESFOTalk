@@ -11,7 +11,7 @@ class SideDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentUserAsync = ref.watch(currentUserDetailsProvider);
+    final currentUserAsync = ref.watch(currentUserDetailsStreamProvider);
 
     return SafeArea(
       child: Drawer(
@@ -62,6 +62,7 @@ class SideDrawer extends ConsumerWidget {
                     // Invalidar caché antes de cerrar sesión
                     ref.invalidate(currentUserAccountProvider);
                     ref.invalidate(currentUserDetailsProvider);
+                    ref.invalidate(currentUserDetailsStreamProvider);
                     ref.read(authControllerProvider.notifier).logout(context);
                   },
                 ),
@@ -78,7 +79,7 @@ class SideDrawer extends ConsumerWidget {
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () {
-                    ref.invalidate(currentUserDetailsProvider);
+                    ref.invalidate(currentUserDetailsStreamProvider);
                   },
                   child: const Text('Reintentar'),
                 ),

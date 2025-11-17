@@ -28,10 +28,10 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   void initState() {
     super.initState();
     nameController = TextEditingController(
-      text: ref.read(currentUserDetailsProvider).value?.name ?? '',
+      text: ref.read(currentUserDetailsStreamProvider).value?.name ?? '',
     );
     bioController = TextEditingController(
-      text: ref.read(currentUserDetailsProvider).value?.bio ?? '',
+      text: ref.read(currentUserDetailsStreamProvider).value?.bio ?? '',
     );
   }
 
@@ -62,7 +62,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(currentUserDetailsProvider).value;
+    final user = ref.watch(currentUserDetailsStreamProvider).value;
     final isLoading = ref.watch(userProfileControllerProvider);
 
     return Scaffold(

@@ -322,8 +322,7 @@ class RoarController extends StateNotifier<bool> {
     }
     String link = _getLinkFromText(text);
     // Asegurar que el usuario esté disponible
-    final userAsync = _ref.read(currentUserDetailsProvider);
-    final user = userAsync.value;
+    final user = await _ref.read(currentUserDetailsProvider.future);
     if (user == null) {
       showSnackBar(
         context,
@@ -416,8 +415,7 @@ class RoarController extends StateNotifier<bool> {
 
     String link = _getLinkFromText(text);
     // Asegurar que el usuario esté disponible
-    final userAsync = _ref.read(currentUserDetailsProvider);
-    final user = userAsync.value;
+    final user = await _ref.read(currentUserDetailsProvider.future);
     if (user == null) {
       showSnackBar(
         context,

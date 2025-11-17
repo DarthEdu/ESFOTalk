@@ -53,7 +53,7 @@ class _CreateRoarScreenState extends ConsumerState<CreateRoarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = ref.watch(currentUserDetailsProvider).value;
+    final currentUser = ref.watch(currentUserDetailsStreamProvider).value;
     final isLoading = ref.watch(roarControllerProvider);
     return Scaffold(
       appBar: AppBar(

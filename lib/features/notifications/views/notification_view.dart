@@ -11,7 +11,7 @@ class NotificationView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentUser = ref.watch(currentUserDetailsProvider).value;
+    final currentUser = ref.watch(currentUserDetailsStreamProvider).value;
     return Scaffold(
       appBar: AppBar(title: const Text('Notificaciones'), centerTitle: true),
       body: currentUser == null

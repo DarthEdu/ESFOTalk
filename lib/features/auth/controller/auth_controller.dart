@@ -30,9 +30,37 @@ final userDetailsProvider = FutureProvider.family((ref, String uid) async {
   return UserModel.fromMap(document.data);
 });
 
-// Provider reactivo para el usuario actual - usa StreamProvider
+// Provider para obtener el usuario actual usando FutureProvider
+// Este provider se usa cuando necesitas obtener el usuario una vez
+final currentUserDetailsProvider = FutureProvider((ref) async {
+  try {
+    // Observar cambios en la cuenta actual
+    final currentUserAccount = await ref.watch(
+      currentUserAccountProvider.future,
+    );
+
+    if (currentUserAccount == null) {
+      return null;
+    }
+
+    final currentUserId = currentUserAccount.$id;
+    final userAPI = ref.watch(userAPIProvider);
+
+    // Obtener los datos del usuario
+    try {
+      final userDoc = await userAPI.getUserData(currentUserId);
+      return UserModel.fromMap(userDoc.data);
+    } catch (e) {
+      return null;
+    }
+  } catch (e) {
+    return null;
+  }
+});
+
+// Provider reactivo para el usuario actual con actualizaciones en tiempo real
 // Se invalida automáticamente cuando cambia currentUserAccountProvider
-final currentUserDetailsProvider = StreamProvider((ref) async* {
+final currentUserDetailsStreamProvider = StreamProvider((ref) async* {
   try {
     // Observar cambios en la cuenta actual - se reinicia si cambia
     final currentUserAccount = await ref.watch(

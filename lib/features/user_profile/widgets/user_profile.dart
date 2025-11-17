@@ -18,7 +18,7 @@ class UserProfile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentUser = ref.watch(currentUserDetailsProvider).value;
+    final currentUser = ref.watch(currentUserDetailsStreamProvider).value;
 
     return currentUser == null
         ? const Loader()
