@@ -63,6 +63,8 @@ class _ExploreViewState extends ConsumerState<ExploreView> {
             ),
           ),
         ),
+        automaticallyImplyLeading:
+            false, // Evita flecha de retroceso al volver a Home tras login
       ),
       body: _searchTerm.isEmpty
           ? const Center(child: Text('Busca usuarios por su nombre de perfil.'))

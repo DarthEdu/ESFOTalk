@@ -200,9 +200,13 @@ class AuthController extends StateNotifier<bool> {
     res.fold((l) => showSnackBar(context, l.message), (r) {
       // Limpiar toda la caché antes de navegar
       _clearAllCache();
-      // Pequeño delay para asegurar que la invalidación se complete
-      Future.delayed(const Duration(milliseconds: 100), () {
-        Navigator.push(context, HomeView.route());
+      // Usar pushAndRemoveUntil para eliminar completamente la pantalla de login y evitar flecha de retroceso
+      Future.delayed(const Duration(milliseconds: 80), () {
+        Navigator.pushAndRemoveUntil(
+          context,
+          HomeView.route(),
+          (route) => false,
+        );
       });
     });
   }

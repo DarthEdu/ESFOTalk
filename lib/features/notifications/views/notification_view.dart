@@ -13,7 +13,12 @@ class NotificationView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserDetailsStreamProvider).value;
     return Scaffold(
-      appBar: AppBar(title: const Text('Notificaciones'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Notificaciones'),
+        centerTitle: true,
+        automaticallyImplyLeading:
+            false, // Evita mostrar flecha de retroceso tras cambio de sesión
+      ),
       body: currentUser == null
           ? const Loader()
           : ref
