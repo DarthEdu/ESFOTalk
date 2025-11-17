@@ -59,6 +59,9 @@ class SideDrawer extends ConsumerWidget {
                     style: TextStyle(fontSize: 22),
                   ),
                   onTap: () {
+                    // Invalidar caché antes de cerrar sesión
+                    ref.invalidate(currentUserAccountProvider);
+                    ref.invalidate(currentUserDetailsProvider);
                     ref.read(authControllerProvider.notifier).logout(context);
                   },
                 ),
