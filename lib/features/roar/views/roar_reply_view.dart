@@ -16,7 +16,11 @@ class RoarReplyScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Rugido')),
+      appBar: AppBar(
+        title: const Text('Rugido'),
+        automaticallyImplyLeading:
+            true, // Responder es flujo profundo, mantiene retroceso
+      ),
       body: Column(
         children: [
           RoarCard(roar: roar),

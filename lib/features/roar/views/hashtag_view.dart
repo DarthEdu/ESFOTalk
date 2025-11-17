@@ -15,7 +15,11 @@ class HashtagView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: Text(hashtag)),
+      appBar: AppBar(
+        title: Text(hashtag),
+        automaticallyImplyLeading:
+            true, // Se mantiene flecha porque es navegación profunda
+      ),
       body: ref
           .watch(getRoarsByHashtagProvider(hashtag))
           .when(

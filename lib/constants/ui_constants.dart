@@ -16,6 +16,8 @@ class UiConstants {
         height: 30,
       ),
       centerTitle: true,
+      automaticallyImplyLeading:
+          false, // Evita flecha back en pestañas principales
     );
   }
 
