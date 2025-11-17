@@ -15,24 +15,26 @@ final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   return AuthController(
     authAPI: ref.watch(authAPIProvider),
     userAPI: ref.watch(userAPIProvider),
-    ref: ref,
   );
 });
 
-final currentUserAccountProvider = FutureProvider((ref) {
-  final authController = ref.watch(authControllerProvider.notifier);
-  return authController.currentUser();
+// Provider directo para la cuenta actual de Appwrite (sin depender del controller)
+final currentUserAccountProvider = FutureProvider((ref) async {
+  final authAPI = ref.watch(authAPIProvider);
+  return authAPI.currentUserAccount();
 });
 
-final userDetailsProvider = FutureProvider.family((ref, String uid) {
-  final authController = ref.watch(authControllerProvider.notifier);
-  return authController.getUserData(uid);
+final userDetailsProvider = FutureProvider.family((ref, String uid) async {
+  final userAPI = ref.watch(userAPIProvider);
+  final document = await userAPI.getUserData(uid);
+  return UserModel.fromMap(document.data);
 });
 
 // Provider reactivo para el usuario actual - usa StreamProvider
+// Se invalida automáticamente cuando cambia currentUserAccountProvider
 final currentUserDetailsProvider = StreamProvider((ref) async* {
   try {
-    // Forzar recarga del usuario actual cada vez que se consulta
+    // Observar cambios en la cuenta actual - se reinicia si cambia
     final currentUserAccount = await ref.watch(
       currentUserAccountProvider.future,
     );
@@ -72,16 +74,11 @@ final currentUserDetailsProvider = StreamProvider((ref) async* {
 class AuthController extends StateNotifier<bool> {
   final AuthAPI _authAPI;
   final UserAPI _userAPI;
-  final Ref _ref;
 
-  AuthController({
-    required AuthAPI authAPI,
-    required UserAPI userAPI,
-    required Ref ref,
-  }) : _authAPI = authAPI,
-       _userAPI = userAPI,
-       _ref = ref,
-       super(false);
+  AuthController({required AuthAPI authAPI, required UserAPI userAPI})
+    : _authAPI = authAPI,
+      _userAPI = userAPI,
+      super(false);
 
   Future<User?> currentUser() => _authAPI.currentUserAccount();
 
@@ -159,9 +156,6 @@ class AuthController extends StateNotifier<bool> {
     final res = await _authAPI.login(email: email, password: password);
     state = false;
     res.fold((l) => showSnackBar(context, l.message), (r) {
-      // Invalidar todos los providers para forzar recarga con nueva sesión
-      _invalidateUserCache();
-
       Navigator.push(context, HomeView.route());
     });
   }
@@ -182,23 +176,12 @@ class AuthController extends StateNotifier<bool> {
   void logout(BuildContext context) async {
     final res = await _authAPI.logout();
     res.fold((l) => showSnackBar(context, l.message), (r) {
-      // Invalidar todos los providers que cachean datos de usuario
-      _invalidateUserCache();
-
       Navigator.pushAndRemoveUntil(
         context,
         SignUpView.route(),
         (route) => false,
       );
     });
-  }
-
-  /// Invalida todos los providers que cachean datos del usuario
-  void _invalidateUserCache() {
-    _ref.invalidate(currentUserAccountProvider);
-    _ref.invalidate(currentUserDetailsProvider);
-    // Los providers con autoDispose se limpian automáticamente
-    // Los family providers se invalidan cuando se requieren con nuevo parámetro
   }
 
   Future<UserModel> getUserData(String uid) async {
