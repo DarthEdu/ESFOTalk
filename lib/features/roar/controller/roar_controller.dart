@@ -25,6 +25,16 @@ final roarControllerProvider = StateNotifierProvider<RoarController, bool>((
 
 // Proveedor de stream para la lista de todos los roars
 final getRoarsProvider = StreamProvider.autoDispose((ref) async* {
+  // Observar currentUserAccountProvider - esto hace que el provider se reinicie
+  // automáticamente cuando cambie la sesión (login/logout)
+  final currentAccount = await ref.watch(currentUserAccountProvider.future);
+
+  // Si no hay usuario autenticado, retornar lista vacía
+  if (currentAccount == null) {
+    yield [];
+    return;
+  }
+
   final roarAPI = ref.watch(roarAPIProvider);
 
   // 1. Yield empty list immediately to avoid blocking UI
@@ -86,6 +96,15 @@ final getRoarsProvider = StreamProvider.autoDispose((ref) async* {
 // Proveedor de stream para las respuestas a un roar específico
 final getRepliesToRoarsProvider = StreamProvider.autoDispose
     .family<List<Roar>, String>((ref, roarId) async* {
+      // Observar currentUserAccountProvider - reinicia automáticamente en login/logout
+      final currentAccount = await ref.watch(currentUserAccountProvider.future);
+
+      // Si no hay usuario autenticado, retornar lista vacía
+      if (currentAccount == null) {
+        yield [];
+        return;
+      }
+
       final roarAPI = ref.watch(roarAPIProvider);
 
       // 1. Yield empty list immediately to avoid blocking UI

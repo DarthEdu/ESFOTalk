@@ -13,6 +13,7 @@ final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   ref,
 ) {
   return AuthController(
+    ref: ref,
     authAPI: ref.watch(authAPIProvider),
     userAPI: ref.watch(userAPIProvider),
   );
@@ -100,15 +101,28 @@ final currentUserDetailsStreamProvider = StreamProvider((ref) async* {
 });
 
 class AuthController extends StateNotifier<bool> {
+  final Ref _ref;
   final AuthAPI _authAPI;
   final UserAPI _userAPI;
 
-  AuthController({required AuthAPI authAPI, required UserAPI userAPI})
-    : _authAPI = authAPI,
-      _userAPI = userAPI,
-      super(false);
+  AuthController({
+    required Ref ref,
+    required AuthAPI authAPI,
+    required UserAPI userAPI,
+  }) : _ref = ref,
+       _authAPI = authAPI,
+       _userAPI = userAPI,
+       super(false);
 
   Future<User?> currentUser() => _authAPI.currentUserAccount();
+
+  // Método para limpiar toda la caché de la aplicación
+  void _clearAllCache() {
+    // Invalidar providers de autenticación
+    _ref.invalidate(currentUserAccountProvider);
+    _ref.invalidate(currentUserDetailsProvider);
+    _ref.invalidate(currentUserDetailsStreamProvider);
+  }
 
   void signUp({
     required String email,
@@ -184,7 +198,12 @@ class AuthController extends StateNotifier<bool> {
     final res = await _authAPI.login(email: email, password: password);
     state = false;
     res.fold((l) => showSnackBar(context, l.message), (r) {
-      Navigator.push(context, HomeView.route());
+      // Limpiar toda la caché antes de navegar
+      _clearAllCache();
+      // Pequeño delay para asegurar que la invalidación se complete
+      Future.delayed(const Duration(milliseconds: 100), () {
+        Navigator.push(context, HomeView.route());
+      });
     });
   }
 
@@ -202,13 +221,19 @@ class AuthController extends StateNotifier<bool> {
   }
 
   void logout(BuildContext context) async {
+    // Limpiar caché ANTES de cerrar sesión
+    _clearAllCache();
+
     final res = await _authAPI.logout();
     res.fold((l) => showSnackBar(context, l.message), (r) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        SignUpView.route(),
-        (route) => false,
-      );
+      // Pequeño delay para asegurar que la invalidación se complete
+      Future.delayed(const Duration(milliseconds: 100), () {
+        Navigator.pushAndRemoveUntil(
+          context,
+          SignUpView.route(),
+          (route) => false,
+        );
+      });
     });
   }
 

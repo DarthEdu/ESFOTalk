@@ -1,5 +1,6 @@
 import 'package:esfotalk_app/apis/notification_api.dart';
 import 'package:esfotalk_app/core/enums/notification_type_enum.dart';
+import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/models/notification_model.dart' as model;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,6 +14,15 @@ final notificationControllerProvider =
 // Proveedor de stream para las notificaciones de un usuario
 final getNotificationProvider =
     StreamProvider.family<List<model.Notification>, String>((ref, uid) async* {
+      // Observar currentUserAccountProvider - reinicia automáticamente en login/logout
+      final currentAccount = await ref.watch(currentUserAccountProvider.future);
+
+      // Si no hay usuario autenticado, retornar lista vacía
+      if (currentAccount == null) {
+        yield [];
+        return;
+      }
+
       final notificationAPI = ref.watch(notificationAPIProvider);
 
       // 1. Yield empty list immediately to avoid blocking UI

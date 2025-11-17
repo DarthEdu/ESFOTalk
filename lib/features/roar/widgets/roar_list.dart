@@ -13,7 +13,8 @@ class RoarList extends ConsumerWidget {
         .watch(getRoarsProvider)
         .when(
           data: (roars) {
-            if (roars.isEmpty) {
+            // Verificar si roars es null o está vacío
+            if (roars == null || roars.isEmpty) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32.0),
