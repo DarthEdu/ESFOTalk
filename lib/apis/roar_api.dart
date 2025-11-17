@@ -21,6 +21,7 @@ abstract class IRoarApi {
   Stream<RealtimeMessage> getLatestRoars();
   FutureEither<Document> likeRoar(Roar roar);
   FutureEither<Document> updateReshareCount(Roar roar);
+  FutureEither<Document> updateCommentIds(Roar roar);
   Future<List<Document>> getRepliesToRoar(String roarId);
   Future<Document> getRoarById(String id);
   Future<List<Document>> getUserRoars(String uid);
@@ -112,6 +113,23 @@ class RoarAPI implements IRoarApi {
         collectionId: AppwriteConstants.roarTable,
         documentId: roar.id,
         data: {'reshareCount': roar.reshareCount},
+      );
+      return right(document);
+    } on AppwriteException catch (e, st) {
+      return left(Failure(e.message ?? 'Some unexpected error occurred', st));
+    } catch (e, st) {
+      return left(Failure(e.toString(), st));
+    }
+  }
+
+  @override
+  FutureEither<Document> updateCommentIds(Roar roar) async {
+    try {
+      final document = await _databases.updateDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.roarTable,
+        documentId: roar.id,
+        data: {'commentIds': roar.commentIds},
       );
       return right(document);
     } on AppwriteException catch (e, st) {

@@ -363,7 +363,7 @@ class RoarController extends StateNotifier<bool> {
 
     res.fold(
       (l) => showSnackBar(context, l.message, type: SnackBarType.error),
-      (r) {
+      (r) async {
         if (repliedTo.isNotEmpty) {
           _notificationController.createNotification(
             text: '¡${user.name} ha contestado tu rugido!',
@@ -371,6 +371,17 @@ class RoarController extends StateNotifier<bool> {
             uid: repliedToUserId,
             notificationType: NotificationType.reply,
           );
+          // Actualizar contador de comentarios en el roar padre
+          try {
+            final parentDoc = await _roarAPI.getRoarById(repliedTo);
+            var parentRoar = Roar.fromMap({
+              ...parentDoc.data,
+              'id': parentDoc.$id,
+            });
+            final updatedIds = [...parentRoar.commentIds, r.$id];
+            parentRoar = parentRoar.copyWith(commentIds: updatedIds);
+            await _roarAPI.updateCommentIds(parentRoar);
+          } catch (_) {}
         }
         if (repliedTo.isEmpty) {
           showSnackBar(
@@ -434,7 +445,7 @@ class RoarController extends StateNotifier<bool> {
     final res = await _roarAPI.shareRoar(roar);
     res.fold(
       (l) => showSnackBar(context, l.message, type: SnackBarType.error),
-      (r) {
+      (r) async {
         if (repliedTo.isNotEmpty) {
           _notificationController.createNotification(
             text: '¡${user.name} ha contestado tu rugido!',
@@ -442,6 +453,17 @@ class RoarController extends StateNotifier<bool> {
             uid: repliedToUserId,
             notificationType: NotificationType.reply,
           );
+          // Actualizar contador de comentarios en el roar padre
+          try {
+            final parentDoc = await _roarAPI.getRoarById(repliedTo);
+            var parentRoar = Roar.fromMap({
+              ...parentDoc.data,
+              'id': parentDoc.$id,
+            });
+            final updatedIds = [...parentRoar.commentIds, r.$id];
+            parentRoar = parentRoar.copyWith(commentIds: updatedIds);
+            await _roarAPI.updateCommentIds(parentRoar);
+          } catch (_) {}
         }
         if (repliedTo.isEmpty) {
           showSnackBar(

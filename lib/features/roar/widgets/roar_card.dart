@@ -199,7 +199,12 @@ class RoarCard extends ConsumerWidget {
                                           pathName: AssetsConstants.commentIcon,
                                           text: roar.commentIds.length
                                               .toString(),
-                                          onTap: () {},
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              RoarReplyScreen.route(roar),
+                                            );
+                                          },
                                         ),
                                         RoarIconButton(
                                           pathName: AssetsConstants.retweetIcon,
