@@ -15,6 +15,7 @@ final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   return AuthController(
     authAPI: ref.watch(authAPIProvider),
     userAPI: ref.watch(userAPIProvider),
+    ref: ref,
   );
 });
 
@@ -31,6 +32,7 @@ final userDetailsProvider = FutureProvider.family((ref, String uid) {
 // Provider reactivo para el usuario actual - usa StreamProvider
 final currentUserDetailsProvider = StreamProvider((ref) async* {
   try {
+    // Forzar recarga del usuario actual cada vez que se consulta
     final currentUserAccount = await ref.watch(
       currentUserAccountProvider.future,
     );
@@ -48,8 +50,9 @@ final currentUserDetailsProvider = StreamProvider((ref) async* {
       final initialDoc = await userAPI.getUserData(currentUserId);
       yield UserModel.fromMap(initialDoc.data);
     } catch (e) {
-      // Si no existe el documento, yield null
+      // Si no existe el documento o hay error de permisos, yield null
       yield null;
+      return; // No continuar con el stream si no hay acceso
     }
 
     // Luego, escuchar cambios en tiempo real
@@ -69,11 +72,16 @@ final currentUserDetailsProvider = StreamProvider((ref) async* {
 class AuthController extends StateNotifier<bool> {
   final AuthAPI _authAPI;
   final UserAPI _userAPI;
+  final Ref _ref;
 
-  AuthController({required AuthAPI authAPI, required UserAPI userAPI})
-    : _authAPI = authAPI,
-      _userAPI = userAPI,
-      super(false);
+  AuthController({
+    required AuthAPI authAPI,
+    required UserAPI userAPI,
+    required Ref ref,
+  }) : _authAPI = authAPI,
+       _userAPI = userAPI,
+       _ref = ref,
+       super(false);
 
   Future<User?> currentUser() => _authAPI.currentUserAccount();
 
@@ -151,6 +159,9 @@ class AuthController extends StateNotifier<bool> {
     final res = await _authAPI.login(email: email, password: password);
     state = false;
     res.fold((l) => showSnackBar(context, l.message), (r) {
+      // Invalidar todos los providers para forzar recarga con nueva sesión
+      _invalidateUserCache();
+
       Navigator.push(context, HomeView.route());
     });
   }
@@ -171,12 +182,23 @@ class AuthController extends StateNotifier<bool> {
   void logout(BuildContext context) async {
     final res = await _authAPI.logout();
     res.fold((l) => showSnackBar(context, l.message), (r) {
+      // Invalidar todos los providers que cachean datos de usuario
+      _invalidateUserCache();
+
       Navigator.pushAndRemoveUntil(
         context,
         SignUpView.route(),
         (route) => false,
       );
     });
+  }
+
+  /// Invalida todos los providers que cachean datos del usuario
+  void _invalidateUserCache() {
+    _ref.invalidate(currentUserAccountProvider);
+    _ref.invalidate(currentUserDetailsProvider);
+    // Los providers con autoDispose se limpian automáticamente
+    // Los family providers se invalidan cuando se requieren con nuevo parámetro
   }
 
   Future<UserModel> getUserData(String uid) async {
