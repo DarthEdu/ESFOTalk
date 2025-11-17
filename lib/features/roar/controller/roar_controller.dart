@@ -35,7 +35,7 @@ final getRoarsProvider = StreamProvider.autoDispose((ref) async* {
   try {
     final documents = await roarAPI.getRoars();
     currentRoars = documents
-        .map((doc) => Roar.fromMap({...doc.data, 'id': doc.$id}))
+        .map((doc) => Roar.fromMap({...doc.data, '\$id': doc.$id}))
         .toList();
     yield currentRoars;
   } catch (e) {
@@ -56,12 +56,12 @@ final getRoarsProvider = StreamProvider.autoDispose((ref) async* {
 
       if (eventType == 'create') {
         // New roar: add to beginning
-        final newRoar = Roar.fromMap({...event.payload, 'id': payloadId});
+        final newRoar = Roar.fromMap({...event.payload, '\$id': payloadId});
         currentRoars = [newRoar, ...currentRoars];
         yield currentRoars;
       } else if (eventType == 'update') {
         // Updated roar: replace in list
-        final updatedRoar = Roar.fromMap({...event.payload, 'id': payloadId});
+        final updatedRoar = Roar.fromMap({...event.payload, '\$id': payloadId});
         final index = currentRoars.indexWhere((r) => r.id == updatedRoar.id);
         if (index != -1) {
           currentRoars = [
@@ -96,7 +96,7 @@ final getRepliesToRoarsProvider = StreamProvider.autoDispose
       try {
         final documents = await roarAPI.getRepliesToRoar(roarId);
         currentReplies = documents
-            .map((doc) => Roar.fromMap({...doc.data, 'id': doc.$id}))
+            .map((doc) => Roar.fromMap({...doc.data, '\$id': doc.$id}))
             .toList();
         yield currentReplies;
       } catch (e) {
@@ -115,7 +115,7 @@ final getRepliesToRoarsProvider = StreamProvider.autoDispose
           final payloadId = event.payload['\$id'];
           if (payloadId == null) continue;
 
-          final payload = Roar.fromMap({...event.payload, 'id': payloadId});
+          final payload = Roar.fromMap({...event.payload, '\$id': payloadId});
 
           // Only process if it's a reply to this roar
           if (payload.repliedTo == roarId) {
@@ -189,13 +189,13 @@ class RoarController extends StateNotifier<bool> {
   Future<List<Roar>> getRoars() async {
     final roarList = await _roarAPI.getRoars();
     return roarList
-        .map((doc) => Roar.fromMap({...doc.data, 'id': doc.$id}))
+        .map((doc) => Roar.fromMap({...doc.data, '\$id': doc.$id}))
         .toList();
   }
 
   Future<Roar> getRoarById(String id) async {
     final roar = await _roarAPI.getRoarById(id);
-    return Roar.fromMap({...roar.data, 'id': roar.$id});
+    return Roar.fromMap({...roar.data, '\$id': roar.$id});
   }
 
   void likeRoar(Roar roar, UserModel user) async {
@@ -296,14 +296,14 @@ class RoarController extends StateNotifier<bool> {
   Future<List<Roar>> getRepliesToRoar(String roarId) async {
     final documents = await _roarAPI.getRepliesToRoar(roarId);
     return documents
-        .map((doc) => Roar.fromMap({...doc.data, 'id': doc.$id}))
+        .map((doc) => Roar.fromMap({...doc.data, '\$id': doc.$id}))
         .toList();
   }
 
   Future<List<Roar>> getRoarsByHashtag(String hashtag) async {
     final documents = await _roarAPI.getRoarsByHashtag(hashtag);
     return documents
-        .map((doc) => Roar.fromMap({...doc.data, 'id': doc.$id}))
+        .map((doc) => Roar.fromMap({...doc.data, '\$id': doc.$id}))
         .toList();
   }
 
