@@ -376,7 +376,7 @@ class RoarController extends StateNotifier<bool> {
             final parentDoc = await _roarAPI.getRoarById(repliedTo);
             var parentRoar = Roar.fromMap({
               ...parentDoc.data,
-              'id': parentDoc.$id,
+              '\$id': parentDoc.$id,
             });
             final updatedIds = [...parentRoar.commentIds, r.$id];
             parentRoar = parentRoar.copyWith(commentIds: updatedIds);
@@ -458,7 +458,7 @@ class RoarController extends StateNotifier<bool> {
             final parentDoc = await _roarAPI.getRoarById(repliedTo);
             var parentRoar = Roar.fromMap({
               ...parentDoc.data,
-              'id': parentDoc.$id,
+              '\$id': parentDoc.$id,
             });
             final updatedIds = [...parentRoar.commentIds, r.$id];
             parentRoar = parentRoar.copyWith(commentIds: updatedIds);
