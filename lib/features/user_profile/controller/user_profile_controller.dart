@@ -7,6 +7,7 @@ import 'package:esfotalk_app/apis/storage_api.dart';
 import 'package:esfotalk_app/apis/user_api.dart';
 import 'package:esfotalk_app/core/enums/notification_type_enum.dart';
 import 'package:esfotalk_app/core/utils.dart';
+import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/features/notifications/controller/notification_controller.dart';
 import 'package:esfotalk_app/models/roar_model.dart';
 import 'package:esfotalk_app/models/user_model.dart';
@@ -14,6 +15,7 @@ import 'package:esfotalk_app/models/user_model.dart';
 final userProfileControllerProvider =
     StateNotifierProvider<UserProfileController, bool>((ref) {
       return UserProfileController(
+        ref: ref,
         roarAPI: ref.watch(roarAPIProvider),
         storageAPI: ref.watch(storageAPIProvider),
         userAPI: ref.watch(userAPIProvider),
@@ -59,16 +61,19 @@ final userDataProvider = StreamProvider.family<UserModel, String>((
 });
 
 class UserProfileController extends StateNotifier<bool> {
+  final Ref _ref;
   final RoarAPI _roarAPI;
   final StorageAPI _storageAPI;
   final UserAPI _userAPI;
   final NotificationController _notificationController;
   UserProfileController({
+    required Ref ref,
     required RoarAPI roarAPI,
     required StorageAPI storageAPI,
     required UserAPI userAPI,
     required NotificationController notificationController,
-  }) : _roarAPI = roarAPI,
+  }) : _ref = ref,
+       _roarAPI = roarAPI,
        _storageAPI = storageAPI,
        _userAPI = userAPI,
        _notificationController = notificationController,
@@ -100,7 +105,12 @@ class UserProfileController extends StateNotifier<bool> {
     state = false;
     res.fold(
       (l) => showSnackBar(context, l.message, type: SnackBarType.error),
-      (r) => Navigator.pop(context),
+      (r) {
+        // Invalidar providers para reflejar cambios inmediatamente
+        _ref.invalidate(userDataProvider(userModel.uid));
+        _ref.invalidate(currentUserDetailsStreamProvider);
+        Navigator.pop(context);
+      },
     );
   }
 
