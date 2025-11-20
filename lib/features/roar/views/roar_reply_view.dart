@@ -16,6 +16,8 @@ class RoarReplyScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
+      resizeToAvoidBottomInset:
+          true, // Permite que el Scaffold se ajuste cuando aparece el teclado
       appBar: AppBar(
         title: const Text('Rugido'),
         automaticallyImplyLeading:
@@ -108,19 +110,42 @@ class RoarReplyScreen extends ConsumerWidget {
               ),
         ],
       ),
-      bottomNavigationBar: TextField(
-        onSubmitted: (value) {
-          ref
-              .read(roarControllerProvider.notifier)
-              .shareRoar(
-                images: [],
-                text: value,
-                context: context,
-                repliedTo: roar.id,
-                repliedToUserId: roar.uid,
-              );
-        },
-        decoration: const InputDecoration(hintText: 'Ruge tu respuesta'),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 8,
+        ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          border: Border(
+            top: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
+          ),
+        ),
+        child: SafeArea(
+          child: TextField(
+            autofocus: false,
+            textInputAction: TextInputAction.send,
+            onSubmitted: (value) {
+              if (value.trim().isEmpty) return;
+              ref
+                  .read(roarControllerProvider.notifier)
+                  .shareRoar(
+                    images: [],
+                    text: value,
+                    context: context,
+                    repliedTo: roar.id,
+                    repliedToUserId: roar.uid,
+                  );
+            },
+            decoration: const InputDecoration(
+              hintText: 'Ruge tu respuesta',
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+          ),
+        ),
       ),
     );
   }
