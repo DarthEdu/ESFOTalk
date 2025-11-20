@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esfotalk_app/constants/constants.dart';
 
 final appwriteClientProvider = Provider((ref) {
-  Client client = Client();
-  return client
+  final client = Client()
       .setEndpoint(AppwriteConstants.endPoint)
-      .setProject(AppwriteConstants.projectId)
-      .setSelfSigned(status: true);
+      .setProject(AppwriteConstants.projectId);
+  // Nota: setSelfSigned(status: true) solo se usa cuando tu instancia Appwrite
+  // corre en local con un certificado autofirmado (self-signed). En Appwrite Cloud
+  // el certificado es válido (CA pública), por lo que NO debe activarse.
+  return client;
 });
 
 final appwriteAccountProvider = Provider((ref) {
