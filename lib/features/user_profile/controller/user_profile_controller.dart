@@ -7,7 +7,6 @@ import 'package:esfotalk_app/apis/storage_api.dart';
 import 'package:esfotalk_app/apis/user_api.dart';
 import 'package:esfotalk_app/core/enums/notification_type_enum.dart';
 import 'package:esfotalk_app/core/utils.dart';
-import 'package:esfotalk_app/features/auth/controller/auth_controller.dart';
 import 'package:esfotalk_app/features/notifications/controller/notification_controller.dart';
 import 'package:esfotalk_app/models/roar_model.dart';
 import 'package:esfotalk_app/models/user_model.dart';
@@ -36,23 +35,13 @@ final userDataProvider = StreamProvider.family<UserModel, String>((
   ref,
   uid,
 ) async* {
-  // Observar currentUserAccountProvider - reinicia automáticamente en login/logout
-  final currentAccount = await ref.watch(currentUserAccountProvider.future);
-
-  // Si no hay usuario autenticado, lanzar error
-  if (currentAccount == null) {
-    throw Exception('No hay sesión activa');
-  }
-
   final userAPI = ref.watch(userAPIProvider);
 
   try {
     // 1. Cargar datos iniciales del usuario
     final initialDoc = await userAPI.getUserData(uid);
     final initialUser = UserModel.fromMap(initialDoc.data);
-    yield initialUser;
-
-    // 2. Escuchar cambios en tiempo real
+    yield initialUser; // 2. Escuchar cambios en tiempo real
     await for (final event in userAPI.getUserDataStream(uid)) {
       try {
         if (event.payload.isEmpty) continue;
